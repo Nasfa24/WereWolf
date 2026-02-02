@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Werewolf Phygital v5.2</title>
+    <title>Werewolf Phygital v6.0</title>
     <style>
         /* --- CSS VARIABLES --- */
         :root {
@@ -24,7 +24,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: background 0.8s ease;
+            transition: background 0.5s ease;
             overflow: hidden;
             user-select: none;
         }
@@ -47,7 +47,7 @@
         button.secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); }
 
         .phase-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
-        .timer-big { font-size: 4rem; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0 #000; }
+        .timer-big { font-size: 5rem; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0 #000; }
         
         .player-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-height: 40vh; overflow-y: auto; margin: 10px 0; }
         .p-card { background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
@@ -59,14 +59,23 @@
         .msg-box { background: #2ecc71; color: black; padding: 15px; border-radius: 10px; margin-bottom: 15px; animation: popIn 0.5s; }
         @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
         #quizStep1 { animation: popIn 0.3s; }
+        
+        #rejoinPanel { margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
     <div id="screenLobby" class="screen">
         <div id="viewLanding">
-            <h1>Werewolf<br>Phygital v5.2</h1>
-            <p>Edisi Final Fix</p>
+            <h1>Werewolf<br>Phygital v6.0</h1>
+            <p>Stable Engine</p>
+            
+            <div id="rejoinPanel" class="hidden">
+                <p style="margin:5px; font-size:0.9rem; color:#f1c40f;">Sesi terakhir ditemukan:</p>
+                <h3 id="lastSessionInfo" style="margin:5px 0 15px 0;">ROOM</h3>
+                <button onclick="rejoinGame()" style="background:#f1c40f; color:black;">LANJUTKAN GAME</button>
+            </div>
+
             <input type="text" id="inputName" placeholder="NAMA KAMU">
             <button onclick="createRoom()">BUAT ROOM (HOST)</button>
             <button class="secondary" onclick="showJoin()">GABUNG ROOM</button>
@@ -195,7 +204,34 @@
         let selectedTarget = null;
         let allPlayers = {};
         let roleFetched = false;
-        let currentGameState = null;
+        
+        // HOST ENGINE LOCAL VARS
+        let hostLocalTimer = 0;
+        let hostCurrentPhase = "";
+
+        // --- CHECK RECONNECT ---
+        // Cek apakah user pernah main sebelumnya (Anti-Refresh)
+        setTimeout(() => {
+            const savedRoom = localStorage.getItem("ww_room");
+            const savedName = localStorage.getItem("ww_name");
+            const savedId = localStorage.getItem("ww_id");
+            const savedHost = localStorage.getItem("ww_host");
+
+            if (savedRoom && savedName && savedId) {
+                document.getElementById("rejoinPanel").classList.remove("hidden");
+                document.getElementById("lastSessionInfo").innerText = `${savedRoom} (${savedName})`;
+            }
+        }, 500);
+
+        window.rejoinGame = () => {
+            roomCode = localStorage.getItem("ww_room");
+            myName = localStorage.getItem("ww_name");
+            myId = localStorage.getItem("ww_id");
+            isHost = (localStorage.getItem("ww_host") === "true");
+            
+            setupLobby();
+            listenRoom();
+        }
 
         // --- NAVIGASI ---
         window.createRoom = () => {
@@ -207,6 +243,7 @@
             for(let i=0; i<4; i++) roomCode += chars.charAt(Math.floor(Math.random()*chars.length));
             
             isHost = true;
+            saveSession();
             setupLobby();
 
             set(ref(db, `rooms/${roomCode}`), {
@@ -221,7 +258,6 @@
         window.showJoin = () => {
             const nameCheck = document.getElementById("inputName").value.trim();
             if(!nameCheck) return alert("Isi NAMA KAMU dulu di atas!");
-            
             document.getElementById("viewLanding").classList.add("hidden");
             document.getElementById("viewJoin").classList.remove("hidden");
         }
@@ -230,7 +266,7 @@
             myName = document.getElementById("inputName").value.trim().toUpperCase();
             roomCode = document.getElementById("inputCode").value.trim().toUpperCase();
             
-            if(!myName) return alert("Nama hilang! Refresh halaman.");
+            if(!myName) return alert("Nama hilang!");
             if(roomCode.length !== 4) return alert("Kode harus 4 huruf!");
 
             const rRef = ref(db, `rooms/${roomCode}`);
@@ -238,6 +274,8 @@
                 if(snap.exists() && snap.val().status === "LOBBY") {
                     set(ref(db, `rooms/${roomCode}/players/${myId}`), { name: myName, isHost: false });
                     onDisconnect(ref(db, `rooms/${roomCode}/players/${myId}`)).remove();
+                    isHost = false;
+                    saveSession();
                     setupLobby();
                     listenRoom();
                 } else {
@@ -245,6 +283,13 @@
                 }
             });
         };
+
+        function saveSession() {
+            localStorage.setItem("ww_room", roomCode);
+            localStorage.setItem("ww_name", myName);
+            localStorage.setItem("ww_id", myId);
+            localStorage.setItem("ww_host", isHost);
+        }
 
         function setupLobby() {
             document.getElementById("viewLanding").classList.add("hidden");
@@ -262,16 +307,8 @@
             onValue(ref(db, `rooms/${roomCode}/players`), snap => {
                 allPlayers = snap.val() || {};
                 document.getElementById("pCount").innerText = Object.keys(allPlayers).length;
-                
-                // HOST RECOVERY (Anti-Refresh)
-                if (allPlayers[myId] && allPlayers[myId].isHost === true) {
-                    isHost = true;
-                    // Restart interval kalau belum jalan
-                    if (!window.hostInterval && currentGameState && currentGameState.phase !== "LOBBY") {
-                         window.hostInterval = setInterval(hostLoop, 1000);
-                    }
-                }
 
+                // Cek pesan pribadi (Seer)
                 if(allPlayers[myId] && allPlayers[myId].privateMsg) {
                     const msgDiv = document.getElementById("privateMsg");
                     msgDiv.innerText = allPlayers[myId].privateMsg;
@@ -285,17 +322,20 @@
                 const state = snap.val();
                 if(!state) return;
                 
-                currentGameState = state; 
+                // Sinkronisasi data ke Host Local Vars (jika reconnect)
+                if (isHost && !window.hostInterval && state.phase !== "LOBBY" && state.phase !== "GAME_OVER") {
+                    hostCurrentPhase = state.phase;
+                    hostLocalTimer = state.timer;
+                    startHostEngine(); // Lanjutkan engine jika putus
+                }
 
                 if (state.phase === "GAME_OVER") {
                     document.getElementById("overlayWin").classList.remove("hidden");
                     document.getElementById("winTitle").innerText = state.winner + " MENANG!";
+                    if(isHost) clearInterval(window.hostInterval);
                 } else {
                     renderGamePhase(state);
                 }
-                
-                // --- BUG FIX: HAPUS PEMANGGILAN hostEngine() DI SINI ---
-                // Logika Host sekarang sepenuhnya diurus oleh setInterval di bawah
             });
         }
 
@@ -321,6 +361,7 @@
             const actionArea = document.getElementById("actionArea");
             const timer = document.getElementById("timerDisplay");
 
+            // Update Timer dari DB
             timer.innerText = (state.timer !== undefined) ? state.timer : "";
 
             actionArea.classList.add("hidden");
@@ -421,7 +462,7 @@
             else { document.getElementById("myRoleDesc").innerText = "Bertahan hidup dan gantung Werewolf saat siang."; }
         }
 
-        // ================= HOST ENGINE (INTERVAL VERSION) =================
+        // ================= HOST ENGINE (LOCAL AUTHORITY FIX) =================
         let processingPhase = false;
 
         window.startGame = () => {
@@ -436,51 +477,71 @@
                 ids.forEach((id, idx) => { update(ref(db, `rooms/${roomCode}/players/${id}`), { role: roles[idx], isAlive: true, privateMsg: null }); });
                 
                 update(ref(db, `rooms/${roomCode}`), { status: "PLAYING" });
+                
+                // INITIAL STATE
+                hostCurrentPhase = "STARTING";
+                hostLocalTimer = 5;
                 update(ref(db, `rooms/${roomCode}/gameState`), { phase: "STARTING", timer: 5, round: 1 });
 
-                // START ROBUST LOOP
-                if (window.hostInterval) clearInterval(window.hostInterval);
-                window.hostInterval = setInterval(hostLoop, 1000);
+                startHostEngine();
             });
         }
 
-        function hostLoop() {
-            if (!currentGameState) return; 
-            if (currentGameState.phase === "LOBBY" || currentGameState.phase === "GAME_OVER") return;
+        function startHostEngine() {
+            if (window.hostInterval) clearInterval(window.hostInterval);
+            window.hostInterval = setInterval(hostLoop, 1000);
+        }
 
-            if (currentGameState.timer > 0) {
-                update(ref(db, `rooms/${roomCode}/gameState/timer`), currentGameState.timer - 1);
+        function hostLoop() {
+            // LOGIC UTAMA: Host mengurangi timer lokal, lalu KIRIM ke DB (SET)
+            // Tidak peduli apa kata DB, Host adalah bos waktu.
+            
+            if (hostLocalTimer > 0) {
+                hostLocalTimer--;
+                // GUNAKAN SET, BUKAN UPDATE UNTUK ANGKA
+                set(ref(db, `rooms/${roomCode}/gameState/timer`), hostLocalTimer);
                 processingPhase = false; 
             } else {
                 if (processingPhase) return; 
                 processingPhase = true;
 
-                let state = currentGameState;
-                let next = ""; let time = 0; let announce = ""; let nextRound = state.round || 1;
+                // LOGIC GANTI FASE
+                get(ref(db, `rooms/${roomCode}/gameState`)).then(snap => {
+                    let state = snap.val();
+                    let next = ""; let time = 0; let announce = ""; let nextRound = state.round || 1;
 
-                if(state.phase === "STARTING") { next = "NIGHT"; time = 20; remove(ref(db, `rooms/${roomCode}/actions`)); }
-                else if(state.phase === "NIGHT") {
-                    processNightActions().then(resultText => {
-                        update(ref(db, `rooms/${roomCode}/gameState`), { phase: "DAY_ANNOUNCE", timer: 8, announcement: resultText, round: nextRound });
-                        checkWinCondition();
-                    }); return;
-                }
-                else if(state.phase === "DAY_ANNOUNCE") { next = "DAY_DISCUSS"; time = 60; }
-                else if(state.phase === "DAY_DISCUSS") { next = "VOTING"; time = 20; remove(ref(db, `rooms/${roomCode}/actions`)); }
-                else if(state.phase === "VOTING") {
-                    processVoting().then(resultText => {
-                        update(ref(db, `rooms/${roomCode}/gameState`), { phase: "DAY_ANNOUNCE", timer: 8, announcement: resultText, round: nextRound });
-                        checkWinCondition();
-                    });
-                    setTimeout(() => {
-                         update(ref(db, `rooms/${roomCode}/gameState`), { phase: "NIGHT", timer: 20, round: nextRound + 1 });
-                         remove(ref(db, `rooms/${roomCode}/actions`));
-                    }, 8000); return;
-                }
+                    if(state.phase === "STARTING") { next = "NIGHT"; time = 20; remove(ref(db, `rooms/${roomCode}/actions`)); }
+                    else if(state.phase === "NIGHT") {
+                        processNightActions().then(resultText => {
+                            hostLocalTimer = 8; // Reset local timer
+                            hostCurrentPhase = "DAY_ANNOUNCE";
+                            update(ref(db, `rooms/${roomCode}/gameState`), { phase: "DAY_ANNOUNCE", timer: 8, announcement: resultText, round: nextRound });
+                            checkWinCondition();
+                        }); return;
+                    }
+                    else if(state.phase === "DAY_ANNOUNCE") { next = "DAY_DISCUSS"; time = 60; }
+                    else if(state.phase === "DAY_DISCUSS") { next = "VOTING"; time = 20; remove(ref(db, `rooms/${roomCode}/actions`)); }
+                    else if(state.phase === "VOTING") {
+                        processVoting().then(resultText => {
+                            hostLocalTimer = 8;
+                            hostCurrentPhase = "DAY_ANNOUNCE";
+                            update(ref(db, `rooms/${roomCode}/gameState`), { phase: "DAY_ANNOUNCE", timer: 8, announcement: resultText, round: nextRound });
+                            checkWinCondition();
+                        });
+                        setTimeout(() => {
+                             hostLocalTimer = 20;
+                             hostCurrentPhase = "NIGHT";
+                             update(ref(db, `rooms/${roomCode}/gameState`), { phase: "NIGHT", timer: 20, round: nextRound + 1 });
+                             remove(ref(db, `rooms/${roomCode}/actions`));
+                        }, 8000); return;
+                    }
 
-                if(next) {
-                    update(ref(db, `rooms/${roomCode}/gameState`), { phase: next, timer: time, announcement: announce, round: nextRound });
-                }
+                    if(next) {
+                        hostLocalTimer = time;
+                        hostCurrentPhase = next;
+                        update(ref(db, `rooms/${roomCode}/gameState`), { phase: next, timer: time, announcement: announce, round: nextRound });
+                    }
+                });
             }
         }
 
