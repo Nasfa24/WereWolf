@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Werewolf Phygital v5.0</title>
+    <title>Werewolf Phygital v5.1</title>
     <style>
         /* --- CSS VARIABLES --- */
         :root {
@@ -65,8 +65,8 @@
 
     <div id="screenLobby" class="screen">
         <div id="viewLanding">
-            <h1>Werewolf<br>Phygital v5.0</h1>
-            <p>Edisi Final Fix</p>
+            <h1>Werewolf<br>Phygital v5.1</h1>
+            <p>Edisi Anti-Macet</p>
             <input type="text" id="inputName" placeholder="NAMA KAMU">
             <button onclick="createRoom()">BUAT ROOM (HOST)</button>
             <button class="secondary" onclick="showJoin()">GABUNG ROOM</button>
@@ -195,6 +195,7 @@
         let selectedTarget = null;
         let allPlayers = {};
         let roleFetched = false;
+        let currentGameState = null; // Menyimpan status terakhir untuk Host
 
         // --- NAVIGASI ---
         window.createRoom = () => {
@@ -274,26 +275,24 @@
                 const state = snap.val();
                 if(!state) return;
                 
-                // UNIFIED RENDER LOGIC (FIXES UNDEFINED BUG)
+                currentGameState = state; // Update state global untuk Host Loop
+
+                // UNIFIED RENDER LOGIC
                 if (state.phase === "GAME_OVER") {
                     document.getElementById("overlayWin").classList.remove("hidden");
                     document.getElementById("winTitle").innerText = state.winner + " MENANG!";
                 } else {
                     renderGamePhase(state);
                 }
-                
-                if(isHost) hostEngine(state);
             });
         }
 
         function renderGamePhase(state) {
-            // Jika fase bukan Lobby, pindah ke layar game
             if (state.phase !== "LOBBY") {
                 document.getElementById("screenLobby").classList.add("hidden");
                 document.getElementById("screenGame").classList.remove("hidden");
             }
 
-            // Ambil Role SEKALI saja saat game mulai
             if (state.phase === "STARTING" && !roleFetched) {
                 get(ref(db, `rooms/${roomCode}/players/${myId}/role`)).then(s => {
                     myRole = s.val();
@@ -310,7 +309,7 @@
             const actionArea = document.getElementById("actionArea");
             const timer = document.getElementById("timerDisplay");
 
-            // SAFE TIMER UPDATE (Fixes 'undefined')
+            // SAFE TIMER UPDATE
             timer.innerText = (state.timer !== undefined) ? state.timer : "";
 
             actionArea.classList.add("hidden");
@@ -318,7 +317,7 @@
 
             switch(state.phase) {
                 case "STARTING":
-                    body.style.background = "#2c3e50"; // Dark Blue
+                    body.style.background = "#2c3e50"; 
                     title.innerText = "GAME DIMULAI";
                     icon.innerText = "⏳";
                     descArea.innerText = "Siap-siap lihat peranmu...";
@@ -411,8 +410,9 @@
             else { document.getElementById("myRoleDesc").innerText = "Bertahan hidup dan gantung Werewolf saat siang."; }
         }
 
-        // --- HOST LOGIC ---
-        let lastTick = 0;
+        // ================= HOST ENGINE (INTERVAL VERSION) =================
+        let processingPhase = false;
+
         window.startGame = () => {
             get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
                 const ids = Object.keys(snap.val());
@@ -423,19 +423,33 @@
                 while(roles.length < count) roles.push("VILLAGER");
                 roles.sort(() => Math.random() - 0.5);
                 ids.forEach((id, idx) => { update(ref(db, `rooms/${roomCode}/players/${id}`), { role: roles[idx], isAlive: true, privateMsg: null }); });
+                
                 update(ref(db, `rooms/${roomCode}`), { status: "PLAYING" });
                 update(ref(db, `rooms/${roomCode}/gameState`), { phase: "STARTING", timer: 5, round: 1 });
+
+                // START ROBUST LOOP
+                if (window.hostInterval) clearInterval(window.hostInterval);
+                window.hostInterval = setInterval(hostLoop, 1000);
             });
         }
 
-        function hostEngine(state) {
-            const now = Date.now();
-            if(now - lastTick < 1000) return;
-            lastTick = now;
-            if(state.timer > 0) {
-                update(ref(db, `rooms/${roomCode}/gameState/timer`), state.timer - 1);
+        function hostLoop() {
+            // Hanya Host yang menjalankan ini
+            if (!currentGameState) return; // Belum ada data
+            if (currentGameState.phase === "LOBBY" || currentGameState.phase === "GAME_OVER") return;
+
+            if (currentGameState.timer > 0) {
+                // Kurangi waktu
+                update(ref(db, `rooms/${roomCode}/gameState/timer`), currentGameState.timer - 1);
+                processingPhase = false; // Reset flag
             } else {
+                // Waktu Habis -> Ganti Fase
+                if (processingPhase) return; // Jangan jalankan 2x kalau DB lemot
+                processingPhase = true;
+
+                let state = currentGameState;
                 let next = ""; let time = 0; let announce = ""; let nextRound = state.round || 1;
+
                 if(state.phase === "STARTING") { next = "NIGHT"; time = 20; remove(ref(db, `rooms/${roomCode}/actions`)); }
                 else if(state.phase === "NIGHT") {
                     processNightActions().then(resultText => {
@@ -455,7 +469,10 @@
                          remove(ref(db, `rooms/${roomCode}/actions`));
                     }, 8000); return;
                 }
-                if(next) { update(ref(db, `rooms/${roomCode}/gameState`), { phase: next, timer: time, announcement: announce, round: nextRound }); }
+
+                if(next) {
+                    update(ref(db, `rooms/${roomCode}/gameState`), { phase: next, timer: time, announcement: announce, round: nextRound });
+                }
             }
         }
 
