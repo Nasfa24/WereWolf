@@ -2,161 +2,250 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Werewolf Phygital v7.1</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Werewolf Phygital v8.0</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@48,400,1,0" rel="stylesheet">
+
     <style>
         /* --- CSS VARIABLES --- */
         :root {
-            --bg-lobby: #2c3e50;
-            --bg-night: #1a0b2e;
-            --bg-day: #2980b9;
-            --bg-vote: #c0392b;
-            --accent: #f1c40f;
+            --bg-dark: #16213e;
+            --bg-night: #0f3460;
+            --bg-day: #3282b8;
+            --bg-vote: #e94560;
+            --accent: #ffd369;
+            --text-main: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.1);
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Poppins', sans-serif;
             margin: 0;
-            height: 100vh;
-            background-color: var(--bg-lobby);
-            color: white;
+            height: 100dvh; /* Dynamic Viewport Height untuk Mobile */
+            background-color: var(--bg-dark);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: background 0.5s ease;
+            transition: background 0.6s ease;
             overflow: hidden;
             user-select: none;
-            -webkit-tap-highlight-color: transparent; /* Hilangkan highlight biru di HP */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
 
-        .screen { width: 90%; max-width: 400px; text-align: center; display: flex; flex-direction: column; height: 100%; justify-content: center; }
+        /* UTILITIES */
         .hidden { display: none !important; }
-        
-        h1 { font-size: 2rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 2px; }
-        h2 { font-size: 3.5rem; margin: 10px 0; color: var(--accent); background: rgba(0,0,0,0.3); padding: 5px 20px; border-radius: 15px; display: inline-block; }
-        
-        #phaseDesc { 
-            font-size: 1.1rem; font-weight: bold; color: #ffeb3b;
-            margin-bottom: 20px; line-height: 1.4; background: rgba(0,0,0,0.2);
-            padding: 15px; border-radius: 8px; transition: all 0.3s ease;
+        .screen { 
+            width: 100%; max-width: 450px; height: 100%; 
+            display: flex; flex-direction: column; 
+            padding: 20px; text-align: center; justify-content: center;
+            position: relative;
         }
 
-        input { padding: 15px; width: 80%; font-size: 1.2rem; border-radius: 8px; border: none; text-align: center; margin-bottom: 10px; text-transform: uppercase; }
-        
-        /* TOMBOL YANG LEBIH ENAK DITEKAN */
+        /* TYPOGRAPHY */
+        h1 { font-size: 2rem; font-weight: 800; margin: 0 0 10px 0; letter-spacing: 1px; line-height: 1.1; }
+        h2 { font-size: 3rem; margin: 10px 0; color: var(--accent); background: rgba(0,0,0,0.2); padding: 5px 25px; border-radius: 20px; display: inline-block; }
+        p { opacity: 0.9; margin-bottom: 15px; font-weight: 400; }
+
+        /* ICON STYLING */
+        .material-symbols-rounded {
+            font-size: 4rem; margin-bottom: 10px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .small-icon { font-size: 1.2rem; vertical-align: middle; margin-right: 5px; }
+
+        /* INPUTS & BUTTONS */
+        input { 
+            padding: 18px; width: 100%; font-size: 1.1rem; 
+            border-radius: 15px; border: 2px solid rgba(255,255,255,0.2); 
+            background: rgba(0,0,0,0.2); color: white;
+            text-align: center; margin-bottom: 15px; font-family: inherit;
+            outline: none; transition: border 0.3s;
+        }
+        input:focus { border-color: var(--accent); }
+
         button { 
-            background: white; color: #333; border: none; padding: 15px 20px; 
-            font-size: 1.1rem; font-weight: bold; border-radius: 12px; 
-            cursor: pointer; width: 90%; margin-bottom: 10px; 
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3); 
-            touch-action: manipulation; /* Optimasi layar sentuh */
+            background: var(--text-main); color: var(--bg-dark); 
+            border: none; padding: 18px; font-size: 1.1rem; font-weight: 800; 
+            border-radius: 15px; cursor: pointer; width: 100%; 
+            margin-bottom: 12px; box-shadow: 0 5px 0 rgba(0,0,0,0.2); 
+            transition: transform 0.1s, box-shadow 0.1s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        button:active { transform: translateY(4px); box-shadow: none; }
-        button.secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); }
-        button.emergency { background: #e74c3c; color: white; font-size: 0.8rem; padding: 8px 15px; width: auto; margin-top: 15px; border: 1px solid white; }
-
-        .phase-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
-        .timer-big { font-size: 5rem; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0 #000; }
+        button:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.2); }
         
-        /* PLAYER GRID OPTIMIZED */
+        button.secondary { background: rgba(255,255,255,0.15); color: white; box-shadow: none; border: 1px solid rgba(255,255,255,0.2); }
+        button.emergency { background: #e74c3c; color: white; font-size: 0.8rem; padding: 10px; width: auto; margin: 20px auto 0; border: 1px solid white; display: inline-block;}
+
+        /* GAME ELEMENTS */
+        .timer-display { 
+            font-size: 5rem; font-weight: 800; margin-top: auto; 
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.2); 
+            font-variant-numeric: tabular-nums;
+        }
+        
+        #phaseDesc {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 20px; border-radius: 15px;
+            margin: 10px 0; font-size: 1.1rem; line-height: 1.5;
+            border-left: 5px solid var(--accent);
+            text-align: left;
+        }
+
+        /* PLAYER GRID (Cards) */
         .player-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; 
             width: 100%; max-height: 45vh; overflow-y: auto; margin: 10px 0;
-            padding: 5px;
+            padding-bottom: 50px; /* Space for button */
         }
         .p-card { 
-            background: rgba(255,255,255,0.15); padding: 15px 5px; border-radius: 8px; 
-            cursor: pointer; border: 3px solid transparent; font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
+            background: var(--card-bg); padding: 20px 10px; border-radius: 12px; 
+            cursor: pointer; border: 2px solid transparent; font-weight: 600;
+            transition: all 0.2s; position: relative; overflow: hidden;
         }
         .p-card.selected { 
-            background: var(--accent); color: black; border-color: white; 
-            transform: scale(1.02); box-shadow: 0 0 15px var(--accent);
+            background: var(--accent); color: var(--bg-dark); 
+            border-color: white; transform: scale(1.02); 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
-        .p-card.dead { opacity: 0.4; text-decoration: line-through; pointer-events: none; background: #000; }
+        .p-card.dead { opacity: 0.5; filter: grayscale(1); background: #000; }
 
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99; flex-direction: column; justify-content: center; align-items: center; }
-        .role-title { font-size: 3rem; color: var(--accent); font-weight: bold; margin: 20px 0; }
-        .msg-box { background: #2ecc71; color: black; padding: 15px; border-radius: 10px; margin-bottom: 15px; animation: popIn 0.5s; width: 80%; }
-        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
-        #quizStep1 { animation: popIn 0.3s; }
+        /* FLOATING ROLE BUTTON */
+        .fab-role {
+            position: absolute; top: 15px; left: 15px;
+            background: rgba(255,255,255,0.2); backdrop-filter: blur(5px);
+            color: white; border-radius: 30px; padding: 8px 16px;
+            font-size: 0.8rem; font-weight: 600; border: 1px solid rgba(255,255,255,0.3);
+            display: flex; align-items: center; gap: 5px; z-index: 10;
+            cursor: pointer;
+        }
+
+        /* OVERLAYS & TOASTS */
+        .overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); z-index: 100; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            padding: 40px; animation: fadeIn 0.3s;
+        }
+        .role-reveal-box {
+            border: 2px solid var(--accent); padding: 30px; border-radius: 20px;
+            background: radial-gradient(circle, #2c3e50 0%, #000 100%);
+            box-shadow: 0 0 30px var(--accent);
+        }
         
-        #rejoinPanel { margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; }
-        #debugStatus { position: fixed; bottom: 5px; left: 5px; font-size: 0.7rem; opacity: 0.5; text-align: left; pointer-events: none; }
+        .msg-toast { 
+            position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+            background: #2ecc71; color: #000; padding: 12px 20px; 
+            border-radius: 50px; font-weight: 600; font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 20;
+            width: 90%; max-width: 350px; animation: slideDown 0.5s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideDown { from { top: -50px; } to { top: 70px; } }
     </style>
 </head>
 <body>
 
-    <div id="debugStatus">Engine: Stopped</div>
+    <div id="debugStatus" style="position:fixed; bottom:5px; left:5px; font-size:0.6rem; opacity:0.3;">v8.0 Ready</div>
 
     <div id="screenLobby" class="screen">
         <div id="viewLanding">
-            <h1>Werewolf<br>Phygital v7.1</h1>
-            <p>Smooth UI Edition</p>
+            <span class="material-symbols-rounded" style="color:var(--accent); font-size: 5rem;">pets</span>
+            <h1>WEREWOLF<br>PHYGITAL</h1>
+            <p style="font-size: 0.9rem; margin-top: -5px;">Mobile App Experience</p>
+            <br>
             
-            <div id="rejoinPanel" class="hidden">
-                <p style="margin:5px; font-size:0.9rem; color:#f1c40f;">Sesi terakhir ditemukan:</p>
-                <h3 id="lastSessionInfo" style="margin:5px 0 15px 0;">ROOM</h3>
-                <button onclick="rejoinGame()" style="background:#f1c40f; color:black;">LANJUTKAN GAME</button>
-                <button onclick="clearSession()" class="secondary" style="font-size:0.8rem; padding: 5px 10px; width: auto;">Hapus Sesi</button>
+            <div id="rejoinPanel" class="hidden" style="background:rgba(255,255,255,0.1); padding:15px; border-radius:15px; margin-bottom:20px;">
+                <p style="margin:0; font-size:0.8rem;">Sesi ditemukan:</p>
+                <h3 id="lastSessionInfo" style="margin:5px 0 15px 0; color:white;">ROOM</h3>
+                <button onclick="rejoinGame()" style="background:var(--accent); color:black;">
+                    <span class="material-symbols-rounded small-icon">play_arrow</span> LANJUTKAN
+                </button>
             </div>
 
             <input type="text" id="inputName" placeholder="NAMA KAMU">
-            <button onclick="createRoom()">BUAT ROOM (HOST)</button>
-            <button class="secondary" onclick="showJoin()">GABUNG ROOM</button>
+            <button onclick="createRoom()">
+                <span class="material-symbols-rounded small-icon">add_circle</span> BUAT ROOM
+            </button>
+            <button class="secondary" onclick="showJoin()">
+                <span class="material-symbols-rounded small-icon">login</span> GABUNG
+            </button>
         </div>
 
         <div id="viewJoin" class="hidden">
             <h1>GABUNG</h1>
-            <input type="text" id="inputCode" placeholder="KODE ROOM (4 HURUF)" maxlength="4">
-            <button onclick="joinRoom()">MASUK</button>
+            <p>Minta 4 Huruf Kode ke Host</p>
+            <input type="text" id="inputCode" placeholder="KODE (CONTOH: ABCD)" maxlength="4" style="text-transform:uppercase; letter-spacing: 5px; font-size: 1.5rem;">
+            <button onclick="joinRoom()">MASUK ROOM</button>
             <button class="secondary" onclick="location.reload()">BATAL</button>
         </div>
 
         <div id="viewWaiting" class="hidden">
-            <p>KODE ROOM:</p>
-            <h2 id="dispCode">----</h2>
-            <p><span id="pCount">0</span> Pemain Terhubung</p>
-            <div id="hostPanel" class="hidden">
-                <button onclick="startGame()">MULAI GAME</button>
+            <p>KODE ROOM</p>
+            <h2><span id="dispCode">----</span></h2>
+            <div style="margin: 20px 0;">
+                <span class="material-symbols-rounded" style="font-size: 2rem;">group</span>
+                <p style="margin:0;"><span id="pCount">0</span> Pemain Masuk</p>
             </div>
-            <p id="waitText">Menunggu Host...</p>
+            
+            <div id="hostPanel" class="hidden">
+                <button onclick="startGame()" style="background:var(--accent); color:black;">
+                    <span class="material-symbols-rounded small-icon">play_circle</span> MULAI GAME
+                </button>
+            </div>
+            <p id="waitText" style="opacity:0.6; font-size:0.9rem;">Menunggu Host memulai...</p>
         </div>
     </div>
 
     <div id="screenGame" class="screen hidden">
-        <div style="position: absolute; top: 10px; left: 10px;">
-            <button style="padding: 5px 15px; font-size: 0.8rem; width: auto;" onclick="toggleRole()">👁️ PERAN</button>
+        <div class="fab-role" onclick="toggleRole()">
+            <span class="material-symbols-rounded" style="font-size:1.2rem">visibility</span> PERAN
         </div>
 
-        <div id="privateMsg" class="msg-box hidden"></div>
+        <div id="privateMsg" class="msg-toast hidden"></div>
 
-        <div id="phaseIcon" class="phase-icon">⏳</div>
-        <h1 id="phaseTitle">MENUNGGU...</h1>
+        <div style="margin-top: 50px;">
+            <span id="phaseIcon" class="material-symbols-rounded">hourglass_empty</span>
+            <h1 id="phaseTitle">LOADING</h1>
+        </div>
+
+        <div id="phaseDesc">Menghubungkan ke server...</div>
         
-        <div id="phaseDesc">...</div>
-        
-        <div id="actionArea" class="hidden">
+        <div id="actionArea" class="hidden" style="flex-grow:1; display:flex; flex-direction:column;">
             <div id="playerGrid" class="player-grid"></div>
-            <button id="btnAction" onclick="submitAction()">KONFIRMASI</button>
+            <button id="btnAction" onclick="submitAction()" style="margin-top:auto; background:var(--accent); color:black;">
+                <span class="material-symbols-rounded small-icon">check_circle</span> KONFIRMASI
+            </button>
         </div>
 
-        <div id="timerDisplay" class="timer-big"></div>
+        <div id="timerDisplay" class="timer-display"></div>
 
-        <button id="btnForceNext" class="emergency hidden" onclick="forceNextPhase()">⚠️ SKIP PHASE</button>
+        <button id="btnForceNext" class="emergency hidden" onclick="forceNextPhase()">
+            <span class="material-symbols-rounded small-icon">skip_next</span> SKIP FASE
+        </button>
     </div>
 
     <div id="overlayRole" class="overlay hidden" onclick="this.classList.add('hidden')">
-        <p>TAP UNTUK TUTUP</p>
-        <div id="myRoleTitle" class="role-title">???</div>
-        <p id="myRoleDesc">...</p>
+        <div class="role-reveal-box">
+            <p style="color:#aaa; margin:0;">PERAN KAMU</p>
+            <h1 id="myRoleTitle" style="font-size: 3rem; margin: 10px 0; color:var(--accent);">???</h1>
+            <p id="myRoleDesc">Ketuk untuk menutup</p>
+        </div>
     </div>
 
     <div id="overlayWin" class="overlay hidden">
-        <h1 id="winTitle" style="font-size: 4rem; color: var(--accent);">WIN!</h1>
-        <p id="winDesc">Game Berakhir</p>
-        <button onclick="location.reload()">MAIN LAGI</button>
+        <span class="material-symbols-rounded" style="font-size: 5rem; color:var(--accent);">emoji_events</span>
+        <h1 id="winTitle" style="font-size: 3rem; margin:10px 0;">WINNER</h1>
+        <p>Permainan Selesai</p>
+        <button onclick="location.reload()" style="width:auto; padding: 15px 40px;">MAIN LAGI</button>
     </div>
 
     <script type="module">
@@ -164,7 +253,7 @@
         import { getDatabase, ref, set, update, onValue, remove, onDisconnect, get } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-        // --- CONFIG ---
+        // CONFIG (GUNAKAN MILIKMU)
         const firebaseConfig = {
             apiKey: "AIzaSyB9Q_Z8oewtWt6pphvwJQbh6PpAqyneYfM",
             authDomain: "werewolf-4d03a.firebaseapp.com",
@@ -178,7 +267,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- BANK SOAL (STABILIZED) ---
+        // --- ASSETS: BANK SOAL & IKON ---
         const singleQuestions = [
             "Siapa yang tatapan matanya paling mencurigakan?", "Siapa yang paling jago berbohong?",
             "Siapa yang terlihat paling gugup?", "Siapa yang senyumnya terlihat palsu?",
@@ -194,59 +283,42 @@
             "Siapa yang sulit kamu percaya 100%?", "Siapa yang punya rahasia terbesar?",
             "Siapa yang ingin kamu singkirkan dari meja?", "Kepada siapa intuisimu tertuju?"
         ];
-        const quizFillersQ1 = [
-            "Perasaanmu malam ini?", "Elemen favoritmu?", "Pilih senjata:", 
-            "Cuaca hatimu?", "Warna keberuntungan?", "Hewan jiwamu?", 
-            "Jam tidurmu?", "Musik favorit?", "Satu kata sifat:", "Ketakutan terbesar?"
-        ];
-        const quizFillersQ2 = [
-            ["Tenang", "Gelisah", "Waspada"], ["Api", "Air", "Angin"], ["Pisau", "Pistol", "Racun"],
-            ["Badai", "Cerah", "Kabut"], ["Merah", "Hitam", "Putih"], ["Serigala", "Domba", "Ular"],
-            ["9 Malam", "12 Malam", "Subuh"], ["Rock", "Jazz", "Pop"], ["Berani", "Licik", "Setia"],
-            ["Gelap", "Tinggi", "Sepi"]
-        ];
-        const quizActionsQ3 = [
-            "Siapa yang sedang kamu perhatikan?", "Tujukan nalurimu pada satu orang:",
-            "Siapa yang nasibnya buruk malam ini?", "Kirim energi ke satu orang:",
-            "Siapa yang ingin kamu kunjungi?", "Pilih satu nama dari daftar:",
-            "Siapa yang paling mencolok?", "Tentukan targetmu sekarang:",
-            "Siapa yang harus diperiksa?", "Kunci pandanganmu pada:"
-        ];
+        
+        // ICONS MAPPING
+        const PHASE_ICONS = {
+            "STARTING": "hourglass_top",
+            "NIGHT": "bedtime", // Ikon Bulan
+            "DAY_ANNOUNCE": "wb_sunny", // Ikon Matahari
+            "DAY_DISCUSS": "forum", // Ikon Diskusi
+            "VOTING": "how_to_vote", // Ikon Vote
+            "GAME_OVER": "emoji_events"
+        };
+
+        const PHASE_COLORS = {
+            "STARTING": "#2c3e50",
+            "NIGHT": "#0f3460", // Dark Blue
+            "DAY_ANNOUNCE": "#f1c40f", // Yellow
+            "DAY_DISCUSS": "#3282b8", // Light Blue
+            "VOTING": "#e94560" // Red
+        };
 
         function getNightContent(round) {
-            // GUNAKAN LOGIKA DETERMINISTIK (Bukan Random Murni)
-            // Agar semua pemain melihat soal yang sama pada ronde yang sama
-            if (round % 2 !== 0) {
-                const index = (round - 1) % singleQuestions.length;
-                return { type: "SINGLE", text: singleQuestions[index] };
-            } else {
-                // Gunakan Math.abs dan round agar stabil
-                const idx1 = (round * 2) % quizFillersQ1.length;
-                const idx3 = round % quizActionsQ3.length;
-                return { type: "QUIZ", q1: quizFillersQ1[idx1], a1: quizFillersQ2[idx1], qText: quizActionsQ3[idx3] };
-            }
+            // Logika Stabil: Selalu sama untuk ronde yang sama
+            const index = (round - 1) % singleQuestions.length;
+            return { type: "SINGLE", text: singleQuestions[index] };
         }
 
-        // --- GLOBAL STATE ---
+        // --- STATE ---
         let myId = "u" + Math.floor(Math.random()*100000);
-        let myName = "";
-        let roomCode = "";
-        let isHost = false;
-        let myRole = "VILLAGER";
-        let selectedTarget = null;
-        let allPlayers = {};
-        let roleFetched = false;
-        
-        let hostLocalTimer = 0;
-        let hostCurrentPhase = "";
-        let lastRenderedPhase = ""; // KUNCI PERBAIKAN: Cek fase terakhir
+        let myName = "", roomCode = "", isHost = false, myRole = "VILLAGER";
+        let selectedTarget = null, allPlayers = {}, roleFetched = false;
+        let hostLocalTimer = 0, lastRenderedPhase = "";
 
-        // --- CHECK RECONNECT ---
+        // --- RECONNECT CHECK ---
         setTimeout(() => {
             const savedRoom = localStorage.getItem("ww_room");
             const savedName = localStorage.getItem("ww_name");
-            const savedId = localStorage.getItem("ww_id");
-            if (savedRoom && savedName && savedId) {
+            if (savedRoom && savedName) {
                 document.getElementById("rejoinPanel").classList.remove("hidden");
                 document.getElementById("lastSessionInfo").innerText = `${savedRoom} (${savedName})`;
             }
@@ -255,30 +327,21 @@
         window.rejoinGame = () => {
             roomCode = localStorage.getItem("ww_room");
             myName = localStorage.getItem("ww_name");
-            myId = localStorage.getItem("ww_id");
+            myId = localStorage.getItem("ww_id") || myId;
             isHost = (localStorage.getItem("ww_host") === "true");
             setupLobby();
             listenRoom();
         }
         
-        window.clearSession = () => {
-            localStorage.clear();
-            location.reload();
-        }
+        window.clearSession = () => { localStorage.clear(); location.reload(); }
 
-        // --- NAVIGASI ---
+        // --- NAVIGATION ---
         window.createRoom = () => {
             myName = document.getElementById("inputName").value.trim().toUpperCase();
             if(!myName) return alert("Isi nama dulu!");
+            roomCode = generateCode(); isHost = true;
+            saveSession(); setupLobby();
             
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-            roomCode = "";
-            for(let i=0; i<4; i++) roomCode += chars.charAt(Math.floor(Math.random()*chars.length));
-            
-            isHost = true;
-            saveSession();
-            setupLobby();
-
             set(ref(db, `rooms/${roomCode}`), {
                 status: "LOBBY",
                 players: { [myId]: { name: myName, isHost: true } },
@@ -289,8 +352,7 @@
         };
 
         window.showJoin = () => {
-            const nameCheck = document.getElementById("inputName").value.trim();
-            if(!nameCheck) return alert("Isi NAMA KAMU dulu di atas!");
+            if(!document.getElementById("inputName").value.trim()) return alert("Isi nama dulu!");
             document.getElementById("viewLanding").classList.add("hidden");
             document.getElementById("viewJoin").classList.remove("hidden");
         }
@@ -298,23 +360,22 @@
         window.joinRoom = () => {
             myName = document.getElementById("inputName").value.trim().toUpperCase();
             roomCode = document.getElementById("inputCode").value.trim().toUpperCase();
-            if(!myName) return alert("Nama hilang!");
             if(roomCode.length !== 4) return alert("Kode harus 4 huruf!");
 
-            const rRef = ref(db, `rooms/${roomCode}`);
-            get(rRef).then(snap => {
+            get(ref(db, `rooms/${roomCode}`)).then(snap => {
                 if(snap.exists() && snap.val().status === "LOBBY") {
                     set(ref(db, `rooms/${roomCode}/players/${myId}`), { name: myName, isHost: false });
                     onDisconnect(ref(db, `rooms/${roomCode}/players/${myId}`)).remove();
-                    isHost = false;
-                    saveSession();
-                    setupLobby();
-                    listenRoom();
-                } else {
-                    alert("Room tidak ditemukan atau sudah main!");
-                }
+                    isHost = false; saveSession(); setupLobby(); listenRoom();
+                } else { alert("Room tidak ditemukan/sudah main!"); }
             });
         };
+
+        function generateCode() {
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+            let res = ""; for(let i=0; i<4; i++) res += chars.charAt(Math.floor(Math.random()*chars.length));
+            return res;
+        }
 
         function saveSession() {
             localStorage.setItem("ww_room", roomCode);
@@ -328,29 +389,26 @@
             document.getElementById("viewJoin").classList.add("hidden");
             document.getElementById("viewWaiting").classList.remove("hidden");
             document.getElementById("dispCode").innerText = roomCode;
-            if(isHost) {
-                document.getElementById("hostPanel").classList.remove("hidden");
-                document.getElementById("waitText").classList.add("hidden");
-            }
+            if(isHost) document.getElementById("hostPanel").classList.remove("hidden");
         }
 
-        // --- LISTENER (SMOOTH UI) ---
+        // --- CORE LISTENER ---
         function listenRoom() {
             onValue(ref(db, `rooms/${roomCode}/players`), snap => {
                 allPlayers = snap.val() || {};
                 document.getElementById("pCount").innerText = Object.keys(allPlayers).length;
-
-                if (allPlayers[myId] && allPlayers[myId].isHost === true) {
+                
+                if (allPlayers[myId]?.isHost) {
                     isHost = true;
                     document.getElementById("btnForceNext").classList.remove("hidden");
-                    if (!window.hostInterval) startHostEngine(); 
+                    if (!window.hostInterval) startHostEngine();
                 }
 
-                if(allPlayers[myId] && allPlayers[myId].privateMsg) {
-                    const msgDiv = document.getElementById("privateMsg");
-                    msgDiv.innerText = allPlayers[myId].privateMsg;
-                    msgDiv.classList.remove("hidden");
-                    setTimeout(() => { msgDiv.classList.add("hidden"); }, 8000);
+                if (allPlayers[myId]?.privateMsg) {
+                    const el = document.getElementById("privateMsg");
+                    el.innerHTML = `<span class="material-symbols-rounded small-icon">info</span> ${allPlayers[myId].privateMsg}`;
+                    el.classList.remove("hidden");
+                    setTimeout(() => el.classList.add("hidden"), 8000);
                     if(!isHost) update(ref(db, `rooms/${roomCode}/players/${myId}`), { privateMsg: null });
                 }
             });
@@ -358,17 +416,15 @@
             onValue(ref(db, `rooms/${roomCode}/gameState`), snap => {
                 const state = snap.val();
                 if(!state) return;
-                
+
                 if (isHost) {
-                    if (Math.abs(hostLocalTimer - state.timer) > 2) {
-                        hostLocalTimer = state.timer;
-                    }
-                    hostCurrentPhase = state.phase;
+                    // Sync timer lokal jika beda jauh (reconnect)
+                    if (Math.abs(hostLocalTimer - state.timer) > 3) hostLocalTimer = state.timer;
                 }
 
                 if (state.phase === "GAME_OVER") {
                     document.getElementById("overlayWin").classList.remove("hidden");
-                    document.getElementById("winTitle").innerText = state.winner + " MENANG!";
+                    document.getElementById("winTitle").innerText = state.winner;
                     if(isHost) clearInterval(window.hostInterval);
                 } else {
                     renderGamePhase(state);
@@ -377,24 +433,20 @@
         }
 
         function renderGamePhase(state) {
-            // 1. UPDATE TIMER (Selalu update, ringan)
-            const timer = document.getElementById("timerDisplay");
-            timer.innerText = (state.timer !== undefined) ? state.timer : "";
+            // 1. UPDATE TIMER (Ringan)
+            document.getElementById("timerDisplay").innerText = (state.timer !== undefined) ? state.timer : "";
 
-            // 2. CEK APAKAH FASE BERUBAH? (KUNCI AGAR TOMBOL GAK HILANG)
-            // Jika fase masih sama (misal masih NIGHT), JANGAN render ulang grid/pertanyaan.
-            if (lastRenderedPhase === state.phase) {
-                return; // STOP DI SINI, BIAR UI GAK KEDIP
-            }
-            
-            // --- MULAI RENDER FASE BARU ---
-            lastRenderedPhase = state.phase; // Update status
+            // 2. CEK PERUBAHAN FASE (Berat)
+            if (lastRenderedPhase === state.phase) return; 
+            lastRenderedPhase = state.phase;
 
+            // Transisi Layar
             if (state.phase !== "LOBBY") {
                 document.getElementById("screenLobby").classList.add("hidden");
                 document.getElementById("screenGame").classList.remove("hidden");
             }
 
+            // Ambil Peran Sekali
             if (state.phase === "STARTING" && !roleFetched) {
                 get(ref(db, `rooms/${roomCode}/players/${myId}/role`)).then(s => {
                     myRole = s.val();
@@ -404,81 +456,54 @@
                 });
             }
 
-            const body = document.body;
-            const title = document.getElementById("phaseTitle");
-            const descArea = document.getElementById("phaseDesc");
-            const icon = document.getElementById("phaseIcon");
-            const actionArea = document.getElementById("actionArea");
+            // GANTI WARNA & IKON
+            document.body.style.backgroundColor = PHASE_COLORS[state.phase] || "#2c3e50";
+            if(state.phase === "DAY_ANNOUNCE") document.body.style.color = "#000"; // Text hitam kalau kuning
+            else document.body.style.color = "#fff";
 
-            actionArea.classList.add("hidden");
-            document.getElementById("privateMsg").classList.add("hidden");
+            document.getElementById("phaseIcon").innerText = PHASE_ICONS[state.phase] || "help";
+            
+            // RESET UI
+            const title = document.getElementById("phaseTitle");
+            const desc = document.getElementById("phaseDesc");
+            const action = document.getElementById("actionArea");
+            action.classList.add("hidden");
 
             switch(state.phase) {
                 case "STARTING":
-                    body.style.background = "#2c3e50"; 
                     title.innerText = "GAME DIMULAI";
-                    icon.innerText = "⏳";
-                    descArea.innerText = "Siap-siap lihat peranmu...";
+                    desc.innerText = "Siap-siap, peran akan dibagikan...";
                     break;
 
                 case "NIGHT":
-                    body.style.background = "var(--bg-night)";
                     title.innerText = "MALAM HARI";
-                    icon.innerText = "🌙";
                     const round = state.round || 1;
                     const content = getNightContent(round);
-                    
-                    if (content.type === "SINGLE") {
-                        descArea.innerHTML = `<span style="color:#ffeb3b;">${content.text}</span>`;
-                        actionArea.classList.remove("hidden");
-                        renderGrid("NIGHT"); // Render grid sekali saja
-                        document.getElementById("btnAction").classList.remove("hidden");
-                    } else if (content.type === "QUIZ") {
-                        // Reset Kuis ke Step 1
-                        descArea.innerHTML = `
-                            <div id="quizStep1">
-                                <p style="color:#aaa; font-size:0.9rem;">PERTANYAAN 1/2</p>
-                                <h3>${content.q1}</h3>
-                                <div style="display:flex; gap:5px; justify-content:center; margin-top:10px;">
-                                    <button onclick="nextQuizStep('${content.qText}')" class="secondary" style="font-size:0.9rem;">${content.a1[0]}</button>
-                                    <button onclick="nextQuizStep('${content.qText}')" class="secondary" style="font-size:0.9rem;">${content.a1[1]}</button>
-                                    <button onclick="nextQuizStep('${content.qText}')" class="secondary" style="font-size:0.9rem;">${content.a1[2]}</button>
-                                </div>
-                            </div>`;
-                        actionArea.classList.add("hidden");
-                    }
+                    desc.innerHTML = `<b>Pertanyaan #${round}:</b><br>${content.text}`;
+                    action.classList.remove("hidden");
+                    renderGrid();
                     break;
 
                 case "DAY_ANNOUNCE":
-                    body.style.background = "var(--bg-day)"; title.innerText = "PENGUMUMAN"; icon.innerText = "☀️";
-                    descArea.innerText = state.announcement || "Desa aman terkendali.";
+                    title.innerText = "PENGUMUMAN";
+                    desc.innerText = state.announcement || "Desa aman.";
                     break;
 
                 case "DAY_DISCUSS":
-                    body.style.background = "var(--bg-day)"; title.innerText = "DISKUSI"; icon.innerText = "🗣️";
-                    descArea.innerText = "Waktunya debat! Cari pelakunya.";
+                    title.innerText = "DISKUSI";
+                    desc.innerText = "Waktu berdebat! Cari siapa pelakunya.";
                     break;
 
                 case "VOTING":
-                    body.style.background = "var(--bg-vote)"; title.innerText = "VOTING"; icon.innerText = "⚖️";
-                    descArea.innerText = "Siapa yang akan digantung?";
-                    actionArea.classList.remove("hidden");
-                    renderGrid("VOTE");
-                    document.getElementById("btnAction").classList.remove("hidden");
+                    title.innerText = "VOTING";
+                    desc.innerText = "Pilih pemain untuk dieksekusi.";
+                    action.classList.remove("hidden");
+                    renderGrid();
                     break;
             }
         }
 
-        window.nextQuizStep = (qText) => {
-            const descArea = document.getElementById("phaseDesc");
-            const actionArea = document.getElementById("actionArea");
-            descArea.innerHTML = `<div style="animation: popIn 0.3s;"><p style="color:#aaa; font-size:0.9rem;">PERTANYAAN 2/2</p><h3 style="color:#ffeb3b;">${qText}</h3></div>`;
-            actionArea.classList.remove("hidden");
-            renderGrid("NIGHT");
-            document.getElementById("btnAction").classList.remove("hidden");
-        }
-
-        function renderGrid(mode) {
+        function renderGrid() {
             const grid = document.getElementById("playerGrid");
             grid.innerHTML = "";
             Object.keys(allPlayers).forEach(key => {
@@ -486,15 +511,12 @@
                 const p = allPlayers[key];
                 const div = document.createElement("div");
                 div.className = `p-card ${!p.isAlive ? 'dead' : ''}`;
-                div.innerText = p.name;
-                
-                // Indikator visual biar enak klik
+                div.innerHTML = `<span class="material-symbols-rounded small-icon">person</span> ${p.name}`;
                 if(p.isAlive) {
                     div.onclick = () => {
                         document.querySelectorAll(".p-card").forEach(c => c.classList.remove("selected"));
                         div.classList.add("selected");
                         selectedTarget = key;
-                        // Feedback getar kalau di HP
                         if(navigator.vibrate) navigator.vibrate(50);
                     };
                 }
@@ -503,42 +525,46 @@
         }
 
         window.submitAction = () => {
-            if(!selectedTarget) return alert("Pilih target dulu!");
+            if(!selectedTarget) return alert("Pilih satu pemain!");
             set(ref(db, `rooms/${roomCode}/actions/${myId}`), { target: selectedTarget, role: myRole });
-            
-            // UI Feedback
             document.getElementById("actionArea").classList.add("hidden");
-            document.getElementById("phaseDesc").innerHTML = "<h3 style='color:#2ecc71'>✅ Pilihan Tersimpan</h3><p>Menunggu pemain lain...</p>";
+            document.getElementById("phaseDesc").innerHTML = "<span style='color:#2ecc71'>✅ Jawaban Terkirim</span><br>Menunggu pemain lain...";
         }
 
-        window.toggleRole = () => { document.getElementById("overlayRole").classList.remove("hidden"); }
+        window.toggleRole = () => document.getElementById("overlayRole").classList.remove("hidden");
+        
         function updateRoleUI() {
             document.getElementById("myRoleTitle").innerText = myRole;
-            if(myRole === "WEREWOLF") { document.getElementById("myRoleDesc").innerText = "Habisi warga. Pilih mangsa saat malam."; document.getElementById("myRoleTitle").style.color = "#e74c3c"; }
-            else if (myRole === "SEER") { document.getElementById("myRoleDesc").innerText = "Cari Werewolf. Pilih pemain untuk diterawang."; document.getElementById("myRoleTitle").style.color = "#2ecc71"; }
-            else { document.getElementById("myRoleDesc").innerText = "Bertahan hidup dan gantung Werewolf saat siang."; }
+            let desc = "Warga biasa. Cari Wolf.";
+            let color = "#2ecc71";
+            
+            if(myRole === "WEREWOLF") { desc = "Mangsa warga tiap malam."; color = "#e74c3c"; }
+            if(myRole === "SEER") { desc = "Terawang peran pemain lain."; color = "#3498db"; }
+            
+            document.getElementById("myRoleDesc").innerText = desc;
+            document.getElementById("myRoleTitle").style.color = color;
         }
 
-        // ================= HOST ENGINE =================
-        let processingPhase = false;
+        // ================= HOST LOGIC =================
+        let processing = false;
 
         window.startGame = () => {
             get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
                 const ids = Object.keys(snap.val());
-                const count = ids.length;
-                let wolves = count >= 8 ? 2 : 1; let seer = 1; let roles = [];
-                for(let i=0; i<wolves; i++) roles.push("WEREWOLF");
-                for(let i=0; i<seer; i++) roles.push("SEER");
-                while(roles.length < count) roles.push("VILLAGER");
+                // Distribusi Role
+                let roles = Array(ids.length).fill("VILLAGER");
+                let wolves = ids.length >= 8 ? 2 : 1;
+                let seer = 1;
+                
+                for(let i=0; i<wolves; i++) roles[i] = "WEREWOLF";
+                for(let i=wolves; i<wolves+seer; i++) roles[i] = "SEER";
                 roles.sort(() => Math.random() - 0.5);
-                ids.forEach((id, idx) => { update(ref(db, `rooms/${roomCode}/players/${id}`), { role: roles[idx], isAlive: true, privateMsg: null }); });
+
+                ids.forEach((id, i) => update(ref(db, `rooms/${roomCode}/players/${id}`), { role: roles[i], isAlive: true }));
                 
                 update(ref(db, `rooms/${roomCode}`), { status: "PLAYING" });
-                
-                hostCurrentPhase = "STARTING";
                 hostLocalTimer = 5;
                 update(ref(db, `rooms/${roomCode}/gameState`), { phase: "STARTING", timer: 5, round: 1 });
-
                 startHostEngine();
             });
         }
@@ -546,108 +572,106 @@
         function startHostEngine() {
             if (window.hostInterval) clearInterval(window.hostInterval);
             window.hostInterval = setInterval(hostLoop, 1000);
-            document.getElementById("debugStatus").innerText = "Engine Started";
         }
 
-        window.forceNextPhase = () => {
-            hostLocalTimer = 0; 
-            processingPhase = false; 
-            hostLoop(); 
-        }
+        window.forceNextPhase = () => { hostLocalTimer = 0; processing = false; hostLoop(); }
 
         function hostLoop() {
             if (!isHost) return;
-
             if (hostLocalTimer > 0) {
                 hostLocalTimer--;
                 set(ref(db, `rooms/${roomCode}/gameState/timer`), hostLocalTimer);
-                processingPhase = false; 
+                processing = false;
             } else {
-                if (processingPhase) return; 
-                processingPhase = true;
-
+                if (processing) return;
+                processing = true;
+                
                 get(ref(db, `rooms/${roomCode}/gameState`)).then(snap => {
-                    let state = snap.val();
-                    let next = ""; let time = 0; let announce = ""; let nextRound = state.round || 1;
+                    let s = snap.val();
+                    let next = "", time = 0, txt = "", r = s.round || 1;
 
-                    // DURASI WAKTU BARU (DI SINI UBAHNYA)
-                    if(state.phase === "STARTING") { next = "NIGHT"; time = 60; remove(ref(db, `rooms/${roomCode}/actions`)); } // Malam 60s
-                    else if(state.phase === "NIGHT") {
-                        processNightActions().then(resultText => {
-                            hostLocalTimer = 8;
-                            update(ref(db, `rooms/${roomCode}/gameState`), { phase: "DAY_ANNOUNCE", timer: 8, announcement: resultText, round: nextRound });
-                            checkWinCondition();
+                    // DURASI WAKTU
+                    if(s.phase === "STARTING") { next="NIGHT"; time=60; remove(ref(db, `rooms/${roomCode}/actions`)); }
+                    else if(s.phase === "NIGHT") {
+                        processNight().then(res => {
+                            hostLocalTimer = 10;
+                            update(ref(db, `rooms/${roomCode}/gameState`), { phase:"DAY_ANNOUNCE", timer:10, announcement:res, round:r });
+                            checkWin();
                         }); return;
                     }
-                    else if(state.phase === "DAY_ANNOUNCE") { next = "DAY_DISCUSS"; time = 180; } // Diskusi 3 Menit
-                    else if(state.phase === "DAY_DISCUSS") { next = "VOTING"; time = 30; remove(ref(db, `rooms/${roomCode}/actions`)); } // Voting 30s
-                    else if(state.phase === "VOTING") {
-                        processVoting().then(resultText => {
-                            hostLocalTimer = 8;
-                            update(ref(db, `rooms/${roomCode}/gameState`), { phase: "DAY_ANNOUNCE", timer: 8, announcement: resultText, round: nextRound });
-                            checkWinCondition();
+                    else if(s.phase === "DAY_ANNOUNCE") { next="DAY_DISCUSS"; time=180; }
+                    else if(s.phase === "DAY_DISCUSS") { next="VOTING"; time=30; remove(ref(db, `rooms/${roomCode}/actions`)); }
+                    else if(s.phase === "VOTING") {
+                        processVote().then(res => {
+                            hostLocalTimer = 10;
+                            update(ref(db, `rooms/${roomCode}/gameState`), { phase:"DAY_ANNOUNCE", timer:10, announcement:res, round:r });
+                            checkWin();
                         });
                         setTimeout(() => {
-                             hostLocalTimer = 60; // Set Malam berikutnya 60s
-                             update(ref(db, `rooms/${roomCode}/gameState`), { phase: "NIGHT", timer: 60, round: nextRound + 1 });
-                             remove(ref(db, `rooms/${roomCode}/actions`));
-                        }, 8000); return;
+                            hostLocalTimer = 60;
+                            update(ref(db, `rooms/${roomCode}/gameState`), { phase:"NIGHT", timer:60, round: r+1 });
+                            remove(ref(db, `rooms/${roomCode}/actions`));
+                        }, 10000); return;
                     }
 
                     if(next) {
                         hostLocalTimer = time;
-                        update(ref(db, `rooms/${roomCode}/gameState`), { phase: next, timer: time, announcement: announce, round: nextRound });
+                        update(ref(db, `rooms/${roomCode}/gameState`), { phase:next, timer:time, announcement:txt, round:r });
                     }
                 });
             }
         }
 
-        async function processNightActions() {
+        async function processNight() {
             const snap = await get(ref(db, `rooms/${roomCode}/actions`));
-            const actions = snap.val() || {};
-            let wolfVotes = {}; let seerTarget = null; let seerId = null;
-            Object.keys(actions).forEach(uid => {
-                const act = actions[uid];
-                if(act.role === "WEREWOLF") wolfVotes[act.target] = (wolfVotes[act.target] || 0) + 1;
-                if(act.role === "SEER") { seerTarget = act.target; seerId = uid; }
+            const acts = snap.val() || {};
+            let votes = {}, seerT = null, seerId = null;
+            
+            Object.keys(acts).forEach(k => {
+                if(acts[k].role === "WEREWOLF") votes[acts[k].target] = (votes[acts[k].target]||0)+1;
+                if(acts[k].role === "SEER") { seerT = acts[k].target; seerId = k; }
             });
-            let victim = null; let maxV = 0;
-            Object.keys(wolfVotes).forEach(target => { if(wolfVotes[target] > maxV) { maxV = wolfVotes[target]; victim = target; } });
-            let text = "Malam yang tenang. Tidak ada yang mati.";
+
+            // Kill Logic
+            let victim = null, max = 0;
+            Object.keys(votes).forEach(k => { if(votes[k] > max){ max = votes[k]; victim = k; }});
+            
+            let msg = "Malam tenang. Tidak ada korban.";
             if(victim) {
                 update(ref(db, `rooms/${roomCode}/players/${victim}`), { isAlive: false });
-                const vName = allPlayers[victim].name;
-                text = `Malam berdarah! ${vName} ditemukan tewas.`;
+                msg = `Malam berdarah! ${allPlayers[victim].name} tewas.`;
             }
-            if(seerTarget && seerId) {
-                const targetRole = allPlayers[seerTarget].role;
-                const isBad = (targetRole === "WEREWOLF");
-                const msg = `Penerawanganmu: ${allPlayers[seerTarget].name} adalah ${isBad ? "WEREWOLF!" : "Warga."}`;
-                update(ref(db, `rooms/${roomCode}/players/${seerId}`), { privateMsg: msg });
+
+            // Seer Logic
+            if(seerT && seerId) {
+                const isWolf = (allPlayers[seerT].role === "WEREWOLF");
+                const info = `Hasil Terawangan: ${allPlayers[seerT].name} adalah ${isWolf ? "WEREWOLF!" : "WARGA."}`;
+                update(ref(db, `rooms/${roomCode}/players/${seerId}`), { privateMsg: info });
             }
-            return text;
+            return msg;
         }
 
-        async function processVoting() {
+        async function processVote() {
             const snap = await get(ref(db, `rooms/${roomCode}/actions`));
-            const votes = snap.val() || {};
-            let counts = {};
-            Object.values(votes).forEach(v => counts[v.target] = (counts[v.target] || 0) + 1);
-            let executed = null; let maxV = 0;
-            Object.keys(counts).forEach(target => { if(counts[target] > maxV) { maxV = counts[target]; executed = target; } });
-            if(executed && maxV >= 2) {
-                update(ref(db, `rooms/${roomCode}/players/${executed}`), { isAlive: false });
-                return `Warga sepakat! ${allPlayers[executed].name} dieksekusi.`;
-            } else { return "Voting seri/kurang. Tidak ada eksekusi."; }
+            const acts = snap.val() || {};
+            let votes = {}, victim = null, max = 0;
+            
+            Object.values(acts).forEach(v => votes[v.target] = (votes[v.target]||0)+1);
+            Object.keys(votes).forEach(k => { if(votes[k] > max){ max = votes[k]; victim = k; }});
+
+            if(victim && max >= 2) {
+                update(ref(db, `rooms/${roomCode}/players/${victim}`), { isAlive: false });
+                return `Warga sepakat! ${allPlayers[victim].name} dieksekusi.`;
+            }
+            return "Voting seri/kurang. Tidak ada eksekusi.";
         }
 
-        function checkWinCondition() {
-            get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
-                const ps = snap.val();
-                let wolves = 0; let villagers = 0;
-                Object.values(ps).forEach(p => { if(p.isAlive) { if(p.role === "WEREWOLF") wolves++; else villagers++; } });
-                if(wolves === 0) update(ref(db, `rooms/${roomCode}/gameState`), { phase: "GAME_OVER", winner: "VILLAGERS" });
-                else if (wolves >= villagers) update(ref(db, `rooms/${roomCode}/gameState`), { phase: "GAME_OVER", winner: "WEREWOLVES" });
+        function checkWin() {
+            get(ref(db, `rooms/${roomCode}/players`)).then(s => {
+                let w=0, v=0;
+                Object.values(s.val()).forEach(p => { if(p.isAlive) p.role==="WEREWOLF" ? w++ : v++; });
+                if(w===0) update(ref(db, `rooms/${roomCode}/gameState`), { phase:"GAME_OVER", winner:"VILLAGERS" });
+                else if(w>=v) update(ref(db, `rooms/${roomCode}/gameState`), { phase:"GAME_OVER", winner:"WEREWOLVES" });
             });
         }
     </script>
