@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Werewolf Phygital v6.0</title>
+    <title>Werewolf Phygital v7.0</title>
     <style>
         /* --- CSS VARIABLES --- */
         :root {
@@ -45,6 +45,9 @@
         button { background: white; color: #333; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; width: 80%; margin-bottom: 10px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
         button:active { transform: translateY(2px); box-shadow: none; }
         button.secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); }
+        
+        /* Tombol Darurat Host */
+        button.emergency { background: #e74c3c; color: white; font-size: 0.8rem; padding: 8px 15px; width: auto; margin-top: 15px; border: 1px solid white; }
 
         .phase-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
         .timer-big { font-size: 5rem; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0 #000; }
@@ -61,19 +64,23 @@
         #quizStep1 { animation: popIn 0.3s; }
         
         #rejoinPanel { margin-bottom: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; }
+        #debugStatus { position: fixed; bottom: 5px; left: 5px; font-size: 0.7rem; opacity: 0.5; text-align: left; pointer-events: none; }
     </style>
 </head>
 <body>
 
+    <div id="debugStatus">Engine: Stopped</div>
+
     <div id="screenLobby" class="screen">
         <div id="viewLanding">
-            <h1>Werewolf<br>Phygital v6.0</h1>
-            <p>Stable Engine</p>
+            <h1>Werewolf<br>Phygital v7.0</h1>
+            <p>Engine Unstoppable</p>
             
             <div id="rejoinPanel" class="hidden">
                 <p style="margin:5px; font-size:0.9rem; color:#f1c40f;">Sesi terakhir ditemukan:</p>
                 <h3 id="lastSessionInfo" style="margin:5px 0 15px 0;">ROOM</h3>
                 <button onclick="rejoinGame()" style="background:#f1c40f; color:black;">LANJUTKAN GAME</button>
+                <button onclick="clearSession()" class="secondary" style="font-size:0.8rem; padding: 5px 10px; width: auto;">Hapus Sesi</button>
             </div>
 
             <input type="text" id="inputName" placeholder="NAMA KAMU">
@@ -116,6 +123,8 @@
         </div>
 
         <div id="timerDisplay" class="timer-big"></div>
+
+        <button id="btnForceNext" class="emergency hidden" onclick="forceNextPhase()">⚠️ FORCE NEXT PHASE ⚠️</button>
     </div>
 
     <div id="overlayRole" class="overlay hidden" onclick="this.classList.add('hidden')">
@@ -205,18 +214,14 @@
         let allPlayers = {};
         let roleFetched = false;
         
-        // HOST ENGINE LOCAL VARS
         let hostLocalTimer = 0;
         let hostCurrentPhase = "";
 
         // --- CHECK RECONNECT ---
-        // Cek apakah user pernah main sebelumnya (Anti-Refresh)
         setTimeout(() => {
             const savedRoom = localStorage.getItem("ww_room");
             const savedName = localStorage.getItem("ww_name");
             const savedId = localStorage.getItem("ww_id");
-            const savedHost = localStorage.getItem("ww_host");
-
             if (savedRoom && savedName && savedId) {
                 document.getElementById("rejoinPanel").classList.remove("hidden");
                 document.getElementById("lastSessionInfo").innerText = `${savedRoom} (${savedName})`;
@@ -228,12 +233,15 @@
             myName = localStorage.getItem("ww_name");
             myId = localStorage.getItem("ww_id");
             isHost = (localStorage.getItem("ww_host") === "true");
-            
             setupLobby();
             listenRoom();
         }
+        
+        window.clearSession = () => {
+            localStorage.clear();
+            location.reload();
+        }
 
-        // --- NAVIGASI ---
         window.createRoom = () => {
             myName = document.getElementById("inputName").value.trim().toUpperCase();
             if(!myName) return alert("Isi nama dulu!");
@@ -265,7 +273,6 @@
         window.joinRoom = () => {
             myName = document.getElementById("inputName").value.trim().toUpperCase();
             roomCode = document.getElementById("inputCode").value.trim().toUpperCase();
-            
             if(!myName) return alert("Nama hilang!");
             if(roomCode.length !== 4) return alert("Kode harus 4 huruf!");
 
@@ -302,13 +309,18 @@
             }
         }
 
-        // --- LISTENER ---
         function listenRoom() {
             onValue(ref(db, `rooms/${roomCode}/players`), snap => {
                 allPlayers = snap.val() || {};
                 document.getElementById("pCount").innerText = Object.keys(allPlayers).length;
 
-                // Cek pesan pribadi (Seer)
+                // RECOVERY LOGIC
+                if (allPlayers[myId] && allPlayers[myId].isHost === true) {
+                    isHost = true;
+                    document.getElementById("btnForceNext").classList.remove("hidden");
+                    if (!window.hostInterval) startHostEngine(); 
+                }
+
                 if(allPlayers[myId] && allPlayers[myId].privateMsg) {
                     const msgDiv = document.getElementById("privateMsg");
                     msgDiv.innerText = allPlayers[myId].privateMsg;
@@ -322,11 +334,13 @@
                 const state = snap.val();
                 if(!state) return;
                 
-                // Sinkronisasi data ke Host Local Vars (jika reconnect)
-                if (isHost && !window.hostInterval && state.phase !== "LOBBY" && state.phase !== "GAME_OVER") {
+                // SYNC HOST LOCAL VARS (Agar tombol Force berfungsi benar)
+                if (isHost) {
+                    // Hanya update local timer dari DB jika perbedaannya jauh (misal saat reconnect)
+                    if (Math.abs(hostLocalTimer - state.timer) > 2) {
+                        hostLocalTimer = state.timer;
+                    }
                     hostCurrentPhase = state.phase;
-                    hostLocalTimer = state.timer;
-                    startHostEngine(); // Lanjutkan engine jika putus
                 }
 
                 if (state.phase === "GAME_OVER") {
@@ -361,8 +375,13 @@
             const actionArea = document.getElementById("actionArea");
             const timer = document.getElementById("timerDisplay");
 
-            // Update Timer dari DB
+            // Update Timer UI
             timer.innerText = (state.timer !== undefined) ? state.timer : "";
+            
+            // DEBUG DISPLAY
+            if(isHost) {
+                document.getElementById("debugStatus").innerText = `Host Engine: ${window.hostInterval ? "RUNNING" : "STOPPED"} | Phase: ${state.phase} | LocalTimer: ${hostLocalTimer}`;
+            }
 
             actionArea.classList.add("hidden");
             document.getElementById("privateMsg").classList.add("hidden");
@@ -374,7 +393,6 @@
                     icon.innerText = "⏳";
                     descArea.innerText = "Siap-siap lihat peranmu...";
                     break;
-
                 case "NIGHT":
                     body.style.background = "var(--bg-night)";
                     title.innerText = "MALAM HARI";
@@ -462,7 +480,7 @@
             else { document.getElementById("myRoleDesc").innerText = "Bertahan hidup dan gantung Werewolf saat siang."; }
         }
 
-        // ================= HOST ENGINE (LOCAL AUTHORITY FIX) =================
+        // ================= HOST ENGINE (ROBUST V7) =================
         let processingPhase = false;
 
         window.startGame = () => {
@@ -478,7 +496,6 @@
                 
                 update(ref(db, `rooms/${roomCode}`), { status: "PLAYING" });
                 
-                // INITIAL STATE
                 hostCurrentPhase = "STARTING";
                 hostLocalTimer = 5;
                 update(ref(db, `rooms/${roomCode}/gameState`), { phase: "STARTING", timer: 5, round: 1 });
@@ -490,22 +507,32 @@
         function startHostEngine() {
             if (window.hostInterval) clearInterval(window.hostInterval);
             window.hostInterval = setInterval(hostLoop, 1000);
+            document.getElementById("debugStatus").innerText = "Engine Started";
+        }
+
+        // FUNGSI DARURAT (FORCE NEXT)
+        window.forceNextPhase = () => {
+            hostLocalTimer = 0; // Set timer ke 0
+            processingPhase = false; // Reset lock
+            hostLoop(); // Paksa jalankan loop sekali
+            alert("Memaksa pindah fase...");
         }
 
         function hostLoop() {
-            // LOGIC UTAMA: Host mengurangi timer lokal, lalu KIRIM ke DB (SET)
-            // Tidak peduli apa kata DB, Host adalah bos waktu.
-            
+            if (!isHost) return;
+
+            // LOGIKA TIMER
             if (hostLocalTimer > 0) {
                 hostLocalTimer--;
-                // GUNAKAN SET, BUKAN UPDATE UNTUK ANGKA
+                // UPDATE KE DB (Fire and Forget)
                 set(ref(db, `rooms/${roomCode}/gameState/timer`), hostLocalTimer);
                 processingPhase = false; 
             } else {
                 if (processingPhase) return; 
                 processingPhase = true;
 
-                // LOGIC GANTI FASE
+                // GANTI FASE
+                // Kita gunakan get() sekali saja saat pergantian fase (aman di sini)
                 get(ref(db, `rooms/${roomCode}/gameState`)).then(snap => {
                     let state = snap.val();
                     let next = ""; let time = 0; let announce = ""; let nextRound = state.round || 1;
@@ -513,8 +540,7 @@
                     if(state.phase === "STARTING") { next = "NIGHT"; time = 20; remove(ref(db, `rooms/${roomCode}/actions`)); }
                     else if(state.phase === "NIGHT") {
                         processNightActions().then(resultText => {
-                            hostLocalTimer = 8; // Reset local timer
-                            hostCurrentPhase = "DAY_ANNOUNCE";
+                            hostLocalTimer = 8;
                             update(ref(db, `rooms/${roomCode}/gameState`), { phase: "DAY_ANNOUNCE", timer: 8, announcement: resultText, round: nextRound });
                             checkWinCondition();
                         }); return;
@@ -524,13 +550,11 @@
                     else if(state.phase === "VOTING") {
                         processVoting().then(resultText => {
                             hostLocalTimer = 8;
-                            hostCurrentPhase = "DAY_ANNOUNCE";
                             update(ref(db, `rooms/${roomCode}/gameState`), { phase: "DAY_ANNOUNCE", timer: 8, announcement: resultText, round: nextRound });
                             checkWinCondition();
                         });
                         setTimeout(() => {
                              hostLocalTimer = 20;
-                             hostCurrentPhase = "NIGHT";
                              update(ref(db, `rooms/${roomCode}/gameState`), { phase: "NIGHT", timer: 20, round: nextRound + 1 });
                              remove(ref(db, `rooms/${roomCode}/actions`));
                         }, 8000); return;
@@ -538,7 +562,6 @@
 
                     if(next) {
                         hostLocalTimer = time;
-                        hostCurrentPhase = next;
                         update(ref(db, `rooms/${roomCode}/gameState`), { phase: next, timer: time, announcement: announce, round: nextRound });
                     }
                 });
