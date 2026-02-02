@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a2e">
-    <title>Werewolf Phygital v9.1</title>
+    <title>Werewolf Phygital v9.2</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,17 +144,15 @@
 </head>
 <body>
 
-    <div id="screenLoading">
-        Memuat Game...
-    </div>
+    <div id="screenLoading">Memulihkan Sesi...</div>
 
-    <div id="debugStatus" style="position:fixed; bottom:5px; left:5px; font-size:0.6rem; opacity:0.3;">v9.1 Anti-Reset</div>
+    <div id="debugStatus" style="position:fixed; bottom:5px; left:5px; font-size:0.6rem; opacity:0.3;">v9.2 Persistent</div>
 
     <div id="screenLobby" class="screen hidden">
         <div id="viewLanding">
             <span class="material-symbols-rounded" style="color:var(--accent); font-size: 5rem;">pets</span>
             <h1>WEREWOLF<br>PHYGITAL</h1>
-            <p style="font-size: 0.9rem; margin-top: -5px;">Versi 9.1 (Stable)</p>
+            <p style="font-size: 0.9rem; margin-top: -5px;">Anti-Refresh Logic</p>
             <br>
             
             <input type="text" id="inputName" placeholder="NAMA KAMU">
@@ -187,6 +185,7 @@
                     <span class="material-symbols-rounded small-icon">play_circle</span> MULAI GAME
                 </button>
                 <p style="font-size:0.8rem; color:#aaa;">Distribusi peran otomatis sesuai jumlah pemain.</p>
+                <button class="end-game" onclick="deleteRoom()">HAPUS ROOM</button>
             </div>
             <p id="waitText" style="opacity:0.6; font-size:0.9rem;">Menunggu Host memulai...</p>
         </div>
@@ -295,7 +294,6 @@
         let hostLocalTimer = 0, lastRenderedPhase = "";
 
         // --- RESTORE SESSION (LOGIC BARU) ---
-        // Menjalankan cek sesi SEBELUM menampilkan apa pun
         (function restoreSession() {
             const savedRoom = localStorage.getItem("ww_room");
             const savedName = localStorage.getItem("ww_name");
@@ -303,24 +301,21 @@
             const savedHost = localStorage.getItem("ww_host");
 
             if (savedRoom && savedName && savedId) {
-                // Restore Variables
                 roomCode = savedRoom;
                 myName = savedName;
                 myId = savedId;
                 isHost = (savedHost === "true");
                 
-                // Fetch Role Dulu baru Listen
+                // Cek Role sebelum tampil
                 get(ref(db, `rooms/${roomCode}/players/${myId}/role`)).then(snap => {
                     if (snap.exists()) myRole = snap.val();
-                    setupLobby(); // Tetap setup lobby structure
-                    listenRoom(); // Mulai listener realtime
+                    setupLobby(); 
+                    listenRoom(); 
                 }).catch(() => {
-                    // Kalau error/room dah bubar
                     document.getElementById("screenLoading").classList.add("hidden");
                     document.getElementById("screenLobby").classList.remove("hidden");
                 });
             } else {
-                // Tidak ada sesi, buka lobby normal
                 document.getElementById("screenLoading").classList.add("hidden");
                 document.getElementById("screenLobby").classList.remove("hidden");
             }
@@ -344,7 +339,8 @@
                 players: { [myId]: { name: myName, isHost: true } },
                 gameState: { phase: "LOBBY" }
             });
-            onDisconnect(ref(db, `rooms/${roomCode}`)).remove();
+            // HAPUS onDisconnect().remove() AGAR ROOM TIDAK HILANG SAAT REFRESH
+            // onDisconnect(ref(db, `rooms/${roomCode}`)).remove(); 
             listenRoom();
         };
 
@@ -362,7 +358,7 @@
             get(ref(db, `rooms/${roomCode}`)).then(snap => {
                 if(snap.exists()) { 
                     set(ref(db, `rooms/${roomCode}/players/${myId}`), { name: myName, isHost: false });
-                    onDisconnect(ref(db, `rooms/${roomCode}/players/${myId}`)).remove();
+                    // HAPUS onDisconnect UNTUK PEMAIN JUGA
                     isHost = false; saveSession(); setupLobby(); listenRoom();
                 } else { alert("Room tidak ditemukan!"); }
             });
@@ -376,24 +372,22 @@
         }
 
         function setupLobby() {
-            document.getElementById("screenLobby").classList.remove("hidden"); // Show container
-            document.getElementById("viewLanding").classList.add("hidden"); // Hide Landing
+            document.getElementById("screenLobby").classList.remove("hidden");
+            document.getElementById("viewLanding").classList.add("hidden");
             document.getElementById("viewJoin").classList.add("hidden");
-            document.getElementById("viewWaiting").classList.remove("hidden"); // Show Waiting
+            document.getElementById("viewWaiting").classList.remove("hidden");
             document.getElementById("dispCode").innerText = roomCode;
             if(isHost) document.getElementById("hostPanel").classList.remove("hidden");
         }
 
         // --- CORE LISTENER ---
         function listenRoom() {
-            // Sembunyikan Loading Screen setelah koneksi dimulai
             document.getElementById("screenLoading").classList.add("hidden");
 
             onValue(ref(db, `rooms/${roomCode}/players`), snap => {
                 allPlayers = snap.val() || {};
                 document.getElementById("pCount").innerText = Object.keys(allPlayers).length;
                 
-                // PASTIKAN TOMBOL HOST MUNCUL JIKA REFRESH
                 if (allPlayers[myId]?.isHost) {
                     isHost = true;
                     document.getElementById("hostGameControls").classList.remove("hidden");
@@ -413,7 +407,6 @@
                 const state = snap.val();
                 if(!state) return;
 
-                // Sync Timer jika beda jauh (misal habis refresh)
                 if (isHost && Math.abs(hostLocalTimer - state.timer) > 3) hostLocalTimer = state.timer;
 
                 if (state.phase === "GAME_OVER") {
@@ -428,18 +421,14 @@
 
         function renderGamePhase(state) {
             document.getElementById("timerDisplay").innerText = (state.timer !== undefined) ? state.timer : "";
-            
-            // JANGAN RENDER ULANG JIKA FASE SAMA (Agar input tidak hilang)
             if (lastRenderedPhase === state.phase) return; 
             lastRenderedPhase = state.phase;
 
-            // Jika masuk game, sembunyikan Lobby
             if (state.phase !== "LOBBY") {
                 document.getElementById("screenLobby").classList.add("hidden");
                 document.getElementById("screenGame").classList.remove("hidden");
             }
 
-            // Ambil Role (Backup jika restore session gagal ambil role)
             if (!myRole || myRole === "VILLAGER") {
                  get(ref(db, `rooms/${roomCode}/players/${myId}/role`)).then(s => {
                     if(s.exists()) {
@@ -449,6 +438,11 @@
                 });
             } else {
                 updateRoleUI();
+            }
+
+            if (state.phase === "STARTING" && !roleFetched) {
+                document.getElementById("overlayRole").classList.remove("hidden");
+                roleFetched = true;
             }
 
             document.body.style.backgroundColor = PHASE_COLORS[state.phase] || "#2c3e50";
@@ -563,6 +557,13 @@
         window.endGame = () => {
             if(!confirm("Yakin akhiri game?")) return;
             update(ref(db, `rooms/${roomCode}/gameState`), { phase: "GAME_OVER", winner: "DIBATALKAN HOST" });
+        }
+        
+        window.deleteRoom = () => {
+            if(!confirm("Yakin hapus room? Semua pemain akan keluar.")) return;
+            remove(ref(db, `rooms/${roomCode}`));
+            localStorage.clear();
+            location.reload();
         }
 
         function hostLoop() {
@@ -690,7 +691,7 @@
                 let w=0, v=0;
                 Object.values(s.val()).forEach(p => { if(p.isAlive) p.role==="WEREWOLF" ? w++ : v++; });
                 if(w===0) update(ref(db, `rooms/${roomCode}/gameState`), { phase:"GAME_OVER", winner:"TIM DESA MENANG" });
-                else if(w>=v) update(ref(db, `rooms/${roomCode}/gameState`), { phase:"GAME_OVER", winner:"WEREWOLF MENANG" });
+                else if(w>=v) update(ref(db, `rooms/${roomCode}/gameState`), { phase:"GAME_OVER", winner:"WEREWOLVES MENANG" });
             });
         }
     </script>
