@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Werewolf Phygital v7.0</title>
+    <title>Werewolf Phygital v7.1</title>
     <style>
         /* --- CSS VARIABLES --- */
         :root {
@@ -27,6 +27,7 @@
             transition: background 0.5s ease;
             overflow: hidden;
             user-select: none;
+            -webkit-tap-highlight-color: transparent; /* Hilangkan highlight biru di HP */
         }
 
         .screen { width: 90%; max-width: 400px; text-align: center; display: flex; flex-direction: column; height: 100%; justify-content: center; }
@@ -36,30 +37,48 @@
         h2 { font-size: 3.5rem; margin: 10px 0; color: var(--accent); background: rgba(0,0,0,0.3); padding: 5px 20px; border-radius: 15px; display: inline-block; }
         
         #phaseDesc { 
-            font-size: 1.2rem; font-weight: bold; color: #ffeb3b;
+            font-size: 1.1rem; font-weight: bold; color: #ffeb3b;
             margin-bottom: 20px; line-height: 1.4; background: rgba(0,0,0,0.2);
             padding: 15px; border-radius: 8px; transition: all 0.3s ease;
         }
 
         input { padding: 15px; width: 80%; font-size: 1.2rem; border-radius: 8px; border: none; text-align: center; margin-bottom: 10px; text-transform: uppercase; }
-        button { background: white; color: #333; border: none; padding: 15px 30px; font-size: 1.1rem; font-weight: bold; border-radius: 50px; cursor: pointer; width: 80%; margin-bottom: 10px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
-        button:active { transform: translateY(2px); box-shadow: none; }
-        button.secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); }
         
-        /* Tombol Darurat Host */
+        /* TOMBOL YANG LEBIH ENAK DITEKAN */
+        button { 
+            background: white; color: #333; border: none; padding: 15px 20px; 
+            font-size: 1.1rem; font-weight: bold; border-radius: 12px; 
+            cursor: pointer; width: 90%; margin-bottom: 10px; 
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3); 
+            touch-action: manipulation; /* Optimasi layar sentuh */
+        }
+        button:active { transform: translateY(4px); box-shadow: none; }
+        button.secondary { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); }
         button.emergency { background: #e74c3c; color: white; font-size: 0.8rem; padding: 8px 15px; width: auto; margin-top: 15px; border: 1px solid white; }
 
         .phase-icon { font-size: 4rem; margin-bottom: 10px; display: block; }
         .timer-big { font-size: 5rem; font-weight: bold; margin-top: 20px; text-shadow: 2px 2px 0 #000; }
         
-        .player-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-height: 40vh; overflow-y: auto; margin: 10px 0; }
-        .p-card { background: rgba(255,255,255,0.15); padding: 10px; border-radius: 8px; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
-        .p-card.selected { background: var(--accent); color: black; border-color: white; transform: scale(1.05); }
+        /* PLAYER GRID OPTIMIZED */
+        .player-grid { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px; 
+            width: 100%; max-height: 45vh; overflow-y: auto; margin: 10px 0;
+            padding: 5px;
+        }
+        .p-card { 
+            background: rgba(255,255,255,0.15); padding: 15px 5px; border-radius: 8px; 
+            cursor: pointer; border: 3px solid transparent; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .p-card.selected { 
+            background: var(--accent); color: black; border-color: white; 
+            transform: scale(1.02); box-shadow: 0 0 15px var(--accent);
+        }
         .p-card.dead { opacity: 0.4; text-decoration: line-through; pointer-events: none; background: #000; }
 
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99; flex-direction: column; justify-content: center; align-items: center; }
         .role-title { font-size: 3rem; color: var(--accent); font-weight: bold; margin: 20px 0; }
-        .msg-box { background: #2ecc71; color: black; padding: 15px; border-radius: 10px; margin-bottom: 15px; animation: popIn 0.5s; }
+        .msg-box { background: #2ecc71; color: black; padding: 15px; border-radius: 10px; margin-bottom: 15px; animation: popIn 0.5s; width: 80%; }
         @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
         #quizStep1 { animation: popIn 0.3s; }
         
@@ -73,8 +92,8 @@
 
     <div id="screenLobby" class="screen">
         <div id="viewLanding">
-            <h1>Werewolf<br>Phygital v7.0</h1>
-            <p>Engine Unstoppable</p>
+            <h1>Werewolf<br>Phygital v7.1</h1>
+            <p>Smooth UI Edition</p>
             
             <div id="rejoinPanel" class="hidden">
                 <p style="margin:5px; font-size:0.9rem; color:#f1c40f;">Sesi terakhir ditemukan:</p>
@@ -115,6 +134,7 @@
 
         <div id="phaseIcon" class="phase-icon">⏳</div>
         <h1 id="phaseTitle">MENUNGGU...</h1>
+        
         <div id="phaseDesc">...</div>
         
         <div id="actionArea" class="hidden">
@@ -124,7 +144,7 @@
 
         <div id="timerDisplay" class="timer-big"></div>
 
-        <button id="btnForceNext" class="emergency hidden" onclick="forceNextPhase()">⚠️ FORCE NEXT PHASE ⚠️</button>
+        <button id="btnForceNext" class="emergency hidden" onclick="forceNextPhase()">⚠️ SKIP PHASE</button>
     </div>
 
     <div id="overlayRole" class="overlay hidden" onclick="this.classList.add('hidden')">
@@ -158,7 +178,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- BANK SOAL ---
+        // --- BANK SOAL (STABILIZED) ---
         const singleQuestions = [
             "Siapa yang tatapan matanya paling mencurigakan?", "Siapa yang paling jago berbohong?",
             "Siapa yang terlihat paling gugup?", "Siapa yang senyumnya terlihat palsu?",
@@ -194,11 +214,14 @@
         ];
 
         function getNightContent(round) {
+            // GUNAKAN LOGIKA DETERMINISTIK (Bukan Random Murni)
+            // Agar semua pemain melihat soal yang sama pada ronde yang sama
             if (round % 2 !== 0) {
                 const index = (round - 1) % singleQuestions.length;
                 return { type: "SINGLE", text: singleQuestions[index] };
             } else {
-                const idx1 = (round + Math.floor(Math.random() * 5)) % quizFillersQ1.length;
+                // Gunakan Math.abs dan round agar stabil
+                const idx1 = (round * 2) % quizFillersQ1.length;
                 const idx3 = round % quizActionsQ3.length;
                 return { type: "QUIZ", q1: quizFillersQ1[idx1], a1: quizFillersQ2[idx1], qText: quizActionsQ3[idx3] };
             }
@@ -216,6 +239,7 @@
         
         let hostLocalTimer = 0;
         let hostCurrentPhase = "";
+        let lastRenderedPhase = ""; // KUNCI PERBAIKAN: Cek fase terakhir
 
         // --- CHECK RECONNECT ---
         setTimeout(() => {
@@ -242,6 +266,7 @@
             location.reload();
         }
 
+        // --- NAVIGASI ---
         window.createRoom = () => {
             myName = document.getElementById("inputName").value.trim().toUpperCase();
             if(!myName) return alert("Isi nama dulu!");
@@ -309,12 +334,12 @@
             }
         }
 
+        // --- LISTENER (SMOOTH UI) ---
         function listenRoom() {
             onValue(ref(db, `rooms/${roomCode}/players`), snap => {
                 allPlayers = snap.val() || {};
                 document.getElementById("pCount").innerText = Object.keys(allPlayers).length;
 
-                // RECOVERY LOGIC
                 if (allPlayers[myId] && allPlayers[myId].isHost === true) {
                     isHost = true;
                     document.getElementById("btnForceNext").classList.remove("hidden");
@@ -334,9 +359,7 @@
                 const state = snap.val();
                 if(!state) return;
                 
-                // SYNC HOST LOCAL VARS (Agar tombol Force berfungsi benar)
                 if (isHost) {
-                    // Hanya update local timer dari DB jika perbedaannya jauh (misal saat reconnect)
                     if (Math.abs(hostLocalTimer - state.timer) > 2) {
                         hostLocalTimer = state.timer;
                     }
@@ -354,6 +377,19 @@
         }
 
         function renderGamePhase(state) {
+            // 1. UPDATE TIMER (Selalu update, ringan)
+            const timer = document.getElementById("timerDisplay");
+            timer.innerText = (state.timer !== undefined) ? state.timer : "";
+
+            // 2. CEK APAKAH FASE BERUBAH? (KUNCI AGAR TOMBOL GAK HILANG)
+            // Jika fase masih sama (misal masih NIGHT), JANGAN render ulang grid/pertanyaan.
+            if (lastRenderedPhase === state.phase) {
+                return; // STOP DI SINI, BIAR UI GAK KEDIP
+            }
+            
+            // --- MULAI RENDER FASE BARU ---
+            lastRenderedPhase = state.phase; // Update status
+
             if (state.phase !== "LOBBY") {
                 document.getElementById("screenLobby").classList.add("hidden");
                 document.getElementById("screenGame").classList.remove("hidden");
@@ -373,15 +409,6 @@
             const descArea = document.getElementById("phaseDesc");
             const icon = document.getElementById("phaseIcon");
             const actionArea = document.getElementById("actionArea");
-            const timer = document.getElementById("timerDisplay");
-
-            // Update Timer UI
-            timer.innerText = (state.timer !== undefined) ? state.timer : "";
-            
-            // DEBUG DISPLAY
-            if(isHost) {
-                document.getElementById("debugStatus").innerText = `Host Engine: ${window.hostInterval ? "RUNNING" : "STOPPED"} | Phase: ${state.phase} | LocalTimer: ${hostLocalTimer}`;
-            }
 
             actionArea.classList.add("hidden");
             document.getElementById("privateMsg").classList.add("hidden");
@@ -393,18 +420,21 @@
                     icon.innerText = "⏳";
                     descArea.innerText = "Siap-siap lihat peranmu...";
                     break;
+
                 case "NIGHT":
                     body.style.background = "var(--bg-night)";
                     title.innerText = "MALAM HARI";
                     icon.innerText = "🌙";
                     const round = state.round || 1;
                     const content = getNightContent(round);
+                    
                     if (content.type === "SINGLE") {
                         descArea.innerHTML = `<span style="color:#ffeb3b;">${content.text}</span>`;
                         actionArea.classList.remove("hidden");
-                        renderGrid("NIGHT");
+                        renderGrid("NIGHT"); // Render grid sekali saja
                         document.getElementById("btnAction").classList.remove("hidden");
                     } else if (content.type === "QUIZ") {
+                        // Reset Kuis ke Step 1
                         descArea.innerHTML = `
                             <div id="quizStep1">
                                 <p style="color:#aaa; font-size:0.9rem;">PERTANYAAN 1/2</p>
@@ -418,14 +448,17 @@
                         actionArea.classList.add("hidden");
                     }
                     break;
+
                 case "DAY_ANNOUNCE":
                     body.style.background = "var(--bg-day)"; title.innerText = "PENGUMUMAN"; icon.innerText = "☀️";
                     descArea.innerText = state.announcement || "Desa aman terkendali.";
                     break;
+
                 case "DAY_DISCUSS":
                     body.style.background = "var(--bg-day)"; title.innerText = "DISKUSI"; icon.innerText = "🗣️";
                     descArea.innerText = "Waktunya debat! Cari pelakunya.";
                     break;
+
                 case "VOTING":
                     body.style.background = "var(--bg-vote)"; title.innerText = "VOTING"; icon.innerText = "⚖️";
                     descArea.innerText = "Siapa yang akan digantung?";
@@ -454,11 +487,15 @@
                 const div = document.createElement("div");
                 div.className = `p-card ${!p.isAlive ? 'dead' : ''}`;
                 div.innerText = p.name;
+                
+                // Indikator visual biar enak klik
                 if(p.isAlive) {
                     div.onclick = () => {
                         document.querySelectorAll(".p-card").forEach(c => c.classList.remove("selected"));
                         div.classList.add("selected");
                         selectedTarget = key;
+                        // Feedback getar kalau di HP
+                        if(navigator.vibrate) navigator.vibrate(50);
                     };
                 }
                 grid.appendChild(div);
@@ -468,8 +505,10 @@
         window.submitAction = () => {
             if(!selectedTarget) return alert("Pilih target dulu!");
             set(ref(db, `rooms/${roomCode}/actions/${myId}`), { target: selectedTarget, role: myRole });
+            
+            // UI Feedback
             document.getElementById("actionArea").classList.add("hidden");
-            document.getElementById("phaseDesc").innerText = "Jawaban tercatat. Menunggu yang lain...";
+            document.getElementById("phaseDesc").innerHTML = "<h3 style='color:#2ecc71'>✅ Pilihan Tersimpan</h3><p>Menunggu pemain lain...</p>";
         }
 
         window.toggleRole = () => { document.getElementById("overlayRole").classList.remove("hidden"); }
@@ -480,7 +519,7 @@
             else { document.getElementById("myRoleDesc").innerText = "Bertahan hidup dan gantung Werewolf saat siang."; }
         }
 
-        // ================= HOST ENGINE (ROBUST V7) =================
+        // ================= HOST ENGINE =================
         let processingPhase = false;
 
         window.startGame = () => {
@@ -510,34 +549,29 @@
             document.getElementById("debugStatus").innerText = "Engine Started";
         }
 
-        // FUNGSI DARURAT (FORCE NEXT)
         window.forceNextPhase = () => {
-            hostLocalTimer = 0; // Set timer ke 0
-            processingPhase = false; // Reset lock
-            hostLoop(); // Paksa jalankan loop sekali
-            alert("Memaksa pindah fase...");
+            hostLocalTimer = 0; 
+            processingPhase = false; 
+            hostLoop(); 
         }
 
         function hostLoop() {
             if (!isHost) return;
 
-            // LOGIKA TIMER
             if (hostLocalTimer > 0) {
                 hostLocalTimer--;
-                // UPDATE KE DB (Fire and Forget)
                 set(ref(db, `rooms/${roomCode}/gameState/timer`), hostLocalTimer);
                 processingPhase = false; 
             } else {
                 if (processingPhase) return; 
                 processingPhase = true;
 
-                // GANTI FASE
-                // Kita gunakan get() sekali saja saat pergantian fase (aman di sini)
                 get(ref(db, `rooms/${roomCode}/gameState`)).then(snap => {
                     let state = snap.val();
                     let next = ""; let time = 0; let announce = ""; let nextRound = state.round || 1;
 
-                    if(state.phase === "STARTING") { next = "NIGHT"; time = 20; remove(ref(db, `rooms/${roomCode}/actions`)); }
+                    // DURASI WAKTU BARU (DI SINI UBAHNYA)
+                    if(state.phase === "STARTING") { next = "NIGHT"; time = 60; remove(ref(db, `rooms/${roomCode}/actions`)); } // Malam 60s
                     else if(state.phase === "NIGHT") {
                         processNightActions().then(resultText => {
                             hostLocalTimer = 8;
@@ -545,8 +579,8 @@
                             checkWinCondition();
                         }); return;
                     }
-                    else if(state.phase === "DAY_ANNOUNCE") { next = "DAY_DISCUSS"; time = 60; }
-                    else if(state.phase === "DAY_DISCUSS") { next = "VOTING"; time = 20; remove(ref(db, `rooms/${roomCode}/actions`)); }
+                    else if(state.phase === "DAY_ANNOUNCE") { next = "DAY_DISCUSS"; time = 180; } // Diskusi 3 Menit
+                    else if(state.phase === "DAY_DISCUSS") { next = "VOTING"; time = 30; remove(ref(db, `rooms/${roomCode}/actions`)); } // Voting 30s
                     else if(state.phase === "VOTING") {
                         processVoting().then(resultText => {
                             hostLocalTimer = 8;
@@ -554,8 +588,8 @@
                             checkWinCondition();
                         });
                         setTimeout(() => {
-                             hostLocalTimer = 20;
-                             update(ref(db, `rooms/${roomCode}/gameState`), { phase: "NIGHT", timer: 20, round: nextRound + 1 });
+                             hostLocalTimer = 60; // Set Malam berikutnya 60s
+                             update(ref(db, `rooms/${roomCode}/gameState`), { phase: "NIGHT", timer: 60, round: nextRound + 1 });
                              remove(ref(db, `rooms/${roomCode}/actions`));
                         }, 8000); return;
                     }
