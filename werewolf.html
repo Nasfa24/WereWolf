@@ -298,6 +298,13 @@
     <div class="app-version">Luna V.1.2</div>
 
     <script type="module">
+	// ... kode lama ...
+
+// TAMBAHAN: Cek apakah ada nama titipan dari LUNA ARCADE
+const savedHubName = localStorage.getItem("ww_name");
+if (savedHubName && !document.getElementById("inputName").value) {
+    document.getElementById("inputName").value = savedHubName;
+}
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getDatabase, ref, set, update, onValue, remove, onDisconnect, get } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";

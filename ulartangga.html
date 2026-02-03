@@ -263,6 +263,13 @@
     </div>
 
     <script type="module">
+	// ... kode lama ...
+
+// TAMBAHAN: Cek apakah ada nama titipan dari LUNA ARCADE
+const savedHubName = localStorage.getItem("ut_name");
+if (savedHubName && !document.getElementById("username").value) {
+    document.getElementById("username").value = savedHubName;
+}
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, get, runTransaction } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
