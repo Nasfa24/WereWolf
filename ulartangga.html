@@ -4,7 +4,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M75 10 L40 40 L25 50 L40 60 L75 90 L55 50 Z' stroke='%2300FF9D' stroke-width='4' fill='%23121212'/><circle cx='40' cy='50' r='5' fill='%23ff4757'/></svg>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LUNA: Geometry War (Pro)</title>
+    <title>LUNA: Geometry War (Ultimate)</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     
     <style>
@@ -13,6 +13,7 @@
             --secondary: #0066FF;
             --accent: #9D00FF;
             --danger: #ff4757;
+            --gold: #fbc531;
             --bg-dark: #121212;
             --panel-bg: #1E1E2E;
             --text-light: #FFFFFF;
@@ -33,7 +34,6 @@
 
         h1 { margin: 5px 0; color: var(--primary); font-size: 2.2rem; font-weight: 800; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 157, 0.4); letter-spacing: 2px; }
         
-        /* INPUT & BUTTONS */
         input { width: 100%; padding: 15px; margin: 8px 0; border-radius: 12px; border: 2px solid #2f3640; font-size: 16px; background: #0f0f0f; color: white; text-align: center; font-weight: bold; box-sizing: border-box; }
         input:focus { outline: none; border-color: var(--primary); background: #2f3640; }
         
@@ -42,7 +42,6 @@
         
         .btn-green { background: var(--primary); color: #000; box-shadow: 0 4px 0 #00b894; }
         .btn-blue { background: var(--secondary); color: white; box-shadow: 0 4px 0 #0044bd; }
-        .btn-purple { background: var(--accent); color: white; box-shadow: 0 4px 0 #7000bd; }
         .btn-red { background: var(--danger); color: white; box-shadow: 0 4px 0 #bd0015; }
         .btn-disabled { background: #57606f; color: #a4b0be; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
@@ -58,81 +57,71 @@
 
         .tile { 
             background: #353b48; color: rgba(255, 255, 255, 0.3); display: flex; justify-content: center; align-items: center; 
-            font-size: 9px; border-radius: 3px; font-weight: bold; user-select: none;
+            font-size: 9px; border-radius: 3px; font-weight: bold; user-select: none; position: relative;
         }
         .tile.ladder { background: #00b894; color: white; border: 1px solid #55efc4; }
         .tile.snake { background: #d63031; color: white; border: 1px solid #ff7675; }
         .tile.mystery { background: #6c5ce7; color: white; font-size: 14px; border: 1px solid #a29bfe; }
         .tile.trap { background: #000; border: 2px solid red; color: red; }
+        .tile.wall { background: #7f8fa6; border: 2px solid white; color: white; }
+        .tile.blackhole { background: black; border: 2px solid #a29bfe; color: #a29bfe; box-shadow: inset 0 0 10px #a29bfe; }
         #tile-100 { background: #fdcb6e; color: #d35400; border: 2px solid white; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
 
-        /* --- TOKEN SYSTEM (NEW: SMOOTH MOVEMENT) --- */
+        /* TOKEN SYSTEM */
         #token-layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; /* Supaya klik tembus ke board */
-            z-index: 10;
+            pointer-events: none; z-index: 10;
         }
-
         .token { 
-            width: 8%; height: 8%; /* Ukuran relatif terhadap board */
-            position: absolute; 
+            width: 8%; height: 8%; position: absolute; 
             display: flex; justify-content: center; align-items: center;
             font-size: 14px; color: white; 
             filter: drop-shadow(0 3px 3px rgba(0,0,0,0.8));
             transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            will-change: top, left;
-            z-index: 20;
+            will-change: top, left; z-index: 20;
         }
-        
         .shape-circle { border-radius: 50%; border: 2px solid white; }
-        .shape-square { border-radius: 4px; border: 2px solid white; }
         .token.active-turn { z-index: 30; transform: scale(1.3); filter: drop-shadow(0 0 8px white); }
 
-        /* --- VISUAL DICE SYSTEM --- */
-        #dice-container {
-            display: flex; justify-content: center; gap: 15px; margin: 10px 0; perspective: 400px;
-        }
+        /* DICE */
+        #dice-container { display: flex; justify-content: center; gap: 15px; margin: 10px 0; }
         .dice {
             width: 50px; height: 50px; background: white; border-radius: 8px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.2), 0 4px 0 #ccc;
             display: flex; justify-content: center; align-items: center;
-            font-size: 24px; font-weight: bold; color: #2d3436;
-            border: 2px solid #dfe6e9;
+            font-size: 24px; font-weight: bold; color: #2d3436; border: 2px solid #dfe6e9;
         }
         .dice.shaking { animation: shake 0.5s infinite; background: #ffeaa7; }
-        
         @keyframes shake {
-            0% { transform: rotate(0deg) translate(0,0); }
-            25% { transform: rotate(10deg) translate(2px, 2px); }
-            50% { transform: rotate(-10deg) translate(-2px, -2px); }
-            75% { transform: rotate(5deg) translate(0, 5px); }
-            100% { transform: rotate(0deg) translate(0,0); }
+            0% { transform: rotate(0deg); } 25% { transform: rotate(10deg); } 50% { transform: rotate(-10deg); } 75% { transform: rotate(5deg); } 100% { transform: rotate(0deg); }
         }
 
-        /* --- INVENTORY & UI --- */
+        /* INVENTORY */
         #inventory-area { 
-            background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; height: 160px; 
+            background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; height: 170px; 
             display: flex; gap: 10px; overflow-x: auto; align-items: center; border: 1px solid #57606f; 
         }
         .card-item { 
-            min-width: 90px; height: 130px; background: #2f3542; color: white; border-radius: 10px; 
-            border-bottom: 5px solid #57606f; display: flex; flex-direction: column; justify-content: center; 
-            align-items: center; padding: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); text-align: center; 
+            min-width: 90px; height: 140px; background: #2f3542; color: white; border-radius: 10px; 
+            border-bottom: 5px solid #57606f; display: flex; flex-direction: column; justify-content: flex-start; 
+            align-items: center; padding: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); text-align: center; position: relative;
         }
         .card-item:active { transform: scale(0.95); }
+        .card-name { font-size: 10px; font-weight: 800; text-transform: uppercase; margin-top: 5px; height: 25px; display: flex; align-items: center; justify-content: center; }
+        .card-icon { font-size: 36px; margin: 2px 0; }
+        .card-desc { font-size: 9px; line-height: 1.1; opacity: 0.9; margin-top: auto; padding-bottom: 5px; }
+
         .card-item.c-attack { border-bottom-color: #ff4757; background: linear-gradient(180deg, #2f3542 0%, #3e1619 100%); }
         .card-item.c-defense { border-bottom-color: #2ed573; background: linear-gradient(180deg, #2f3542 0%, #113822 100%); }
         .card-item.c-trick { border-bottom-color: #a29bfe; background: linear-gradient(180deg, #2f3542 0%, #262242 100%); }
+        .card-item.c-god { border-bottom-color: #fbc531; background: linear-gradient(180deg, #2f3542 0%, #423812 100%); }
 
         #timer-container { width: 100%; height: 6px; background: #2f3640; margin-top: 10px; border-radius: 3px; overflow: hidden; }
         #timer-bar { height: 100%; width: 100%; background: var(--primary); transition: width 1s linear; }
 
-        /* --- MODAL --- */
-        #modal-overlay, #modal-guide { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0, 0, 0, 0.9); z-index: 2000; display: flex; justify-content: center; align-items: flex-end; }
-        .modal-box { background: #1e272e; padding: 25px; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; text-align: center; display: flex; flex-direction: column; max-height: 85vh; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        /* MODAL */
+        #modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0, 0, 0, 0.9); z-index: 2000; display: flex; justify-content: center; align-items: flex-end; }
+        .modal-box { background: #1e272e; padding: 25px; border-radius: 20px 20px 0 0; width: 100%; max-width: 500px; text-align: center; display: flex; flex-direction: column; max-height: 85vh; }
         .target-btn { display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 15px; margin: 8px 0; background: #2f3542; color: white; border-radius: 12px; }
-        
         #screen-winner { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:3000; display:flex; flex-direction:column; justify-content:center; align-items:center; }
     </style>
 </head>
@@ -149,7 +138,7 @@
             <input type="text" id="username" placeholder="Nama Panggilan" maxlength="10" style="margin-top:20px;">
             <button class="btn-green" onclick="createRoom()">BUAT ROOM BARU</button>
             <p style="font-size:12px; color:#a4b0be; margin: 15px 0;">— ATAU MASUK ROOM —</p>
-            <input type="text" id="room-code-input" placeholder="KODE ROOM (CONTOH: A1B2)" style="text-transform:uppercase;">
+            <input type="text" id="room-code-input" placeholder="KODE ROOM" style="text-transform:uppercase;">
             <button class="btn-blue" onclick="joinRoom()">GABUNG ROOM</button>
             <div style="margin-top:20px; border-top:1px solid #333; padding-top:10px;">
                  <button class="btn-red" onclick="resetLocalData()" style="font-size:10px; width:auto; padding:8px;">RESET DATA LOKAL</button>
@@ -159,10 +148,10 @@
         <div id="screen-lobby" class="hidden">
             <h2>LOBBY MENUNGGU</h2>
             <div id="display-room-code" style="font-size:3em; font-weight:800; color:var(--primary); letter-spacing: 5px; background:#2f3542; padding:10px; border-radius:10px;">----</div>
-            <p style="text-align:left; font-weight:bold;">Daftar Pemain:</p>
+            <p style="text-align:left; font-weight:bold;">Pemain:</p>
             <ul id="player-list-ul" style="list-style:none; padding:0; text-align:left;"></ul>
             <div id="host-controls" class="hidden"><button class="btn-green" onclick="startGame()">MULAI PERTEMPURAN</button></div>
-            <p id="waiting-msg" style="color:#a4b0be; font-size:12px;">Menunggu Host memulai...</p>
+            <p id="waiting-msg" style="color:#a4b0be; font-size:12px;">Menunggu Host...</p>
         </div>
 
         <div id="screen-game" class="hidden">
@@ -192,7 +181,7 @@
                 
                 <div id="game-log" style="height:60px; overflow-y:auto; background:rgba(0,0,0,0.3); font-size:12px; text-align:left; padding:5px; margin:5px 0; border:1px solid #57606f; border-radius:5px;">Log permainan...</div>
                 
-                <div style="text-align:left; margin-top:10px; font-size:12px; color:white;">INVENTORY KARTU:</div>
+                <div style="text-align:left; margin-top:10px; font-size:12px; color:white;">INVENTORY KARTU (Geser):</div>
                 <div id="inventory-area"></div>
             </div>
         </div>
@@ -213,17 +202,12 @@
     </div>
 
     <script type="module">
-        // INTEGRASI NAMA DARI LUNA ARCADE (JIKA ADA)
         const savedHubName = localStorage.getItem("ut_name");
-        if (savedHubName && !document.getElementById("username").value) {
-            document.getElementById("username").value = savedHubName;
-        }
+        if (savedHubName && !document.getElementById("username").value) document.getElementById("username").value = savedHubName;
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, get, runTransaction } 
-        from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, get, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
-        // CONFIG FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBR01mYbrPNVKk5JqMWeNTyr2yDhiXo4Rg",
             authDomain: "ular-tangga-tempur.firebaseapp.com",
@@ -236,17 +220,49 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // ASSETS
+        // --- DATABASE KARTU BARU (30 ITEMS) ---
+        const CARD_DB = [
+            // ATTACK (Merah)
+            { id: "SNAKE_BITE", name: "Snake Bite", icon: "🐍", type: "c-attack", target: "ENEMY", desc: "Mundurkan 1 musuh (10 langkah)." },
+            { id: "BACKSTAB", name: "Backstab", icon: "🔪", type: "c-attack", target: "NONE", desc: "Rank 1 mundur 10 langkah." },
+            { id: "FREEZE", name: "Freeze", icon: "❄️", type: "c-attack", target: "ENEMY", desc: "Skip giliran musuh." },
+            { id: "POISON", name: "Poison", icon: "🧪", type: "c-attack", target: "ENEMY", desc: "Musuh mundur 2 langkah (3 turn)." },
+            { id: "METEOR", name: "Meteor", icon: "☄️", type: "c-attack", target: "NONE", desc: "Semua musuh mundur 5 langkah." },
+            { id: "MAGNET", name: "Magnet", icon: "🧲", type: "c-attack", target: "NONE", desc: "Tarik semua musuh 5 langkah ke arahmu." },
+            { id: "EQUALIZER", name: "Equalizer", icon: "⚖️", type: "c-attack", target: "NONE", desc: "Musuh di depan ditarik sejajar denganmu." },
+            { id: "KAMIKAZE", name: "Kamikaze", icon: "✈️", type: "c-attack", target: "ENEMY", desc: "Kamu & Target kembali ke Start." },
+            
+            // DEFENSE (Hijau)
+            { id: "NITRO", name: "Nitro", icon: "🚀", type: "c-defense", target: "SELF", desc: "Maju 6 langkah." },
+            { id: "SUPER_JUMP", name: "Super Jump", icon: "🦗", type: "c-defense", target: "SELF", desc: "Maju 12 langkah." },
+            { id: "SHIELD", name: "Shield", icon: "🛡️", type: "c-defense", target: "SELF", desc: "Kebal Ular/Trap (1 Turn)." },
+            { id: "ANCHOR", name: "Anchor", icon: "⚓", type: "c-defense", target: "SELF", desc: "Anti-Mundur (Pasif)." },
+            { id: "WALL", name: "Wall", icon: "🧱", type: "c-defense", target: "NONE", desc: "Bangun tembok di posisimu." },
+            { id: "TRAP", name: "Trap Set", icon: "💣", type: "c-defense", target: "NONE", desc: "Pasang ranjau di posisimu." },
+            { id: "CHECKPOINT", name: "Checkpt", icon: "🚩", type: "c-defense", target: "SELF", desc: "Set spawn point di sini." },
+            { id: "PURIFY", name: "Purify", icon: "💊", type: "c-defense", target: "SELF", desc: "Hapus racun/beku/status buruk." },
+
+            // TRICK (Ungu)
+            { id: "PIRATE", name: "Pirate", icon: "🏴‍☠️", type: "c-trick", target: "ENEMY", desc: "Curi 1 kartu musuh." },
+            { id: "PORTAL", name: "Portal", icon: "🌀", type: "c-trick", target: "ENEMY", desc: "Tukar posisi dengan target." },
+            { id: "SWAP_RND", name: "Swap Rnd", icon: "🎲", type: "c-trick", target: "NONE", desc: "Tukar posisi dengan acak orang." },
+            { id: "CONFUSE", name: "Confuse", icon: "💫", type: "c-trick", target: "ENEMY", desc: "Musuh jalan mundur (1 turn)." },
+            { id: "REPEL", name: "Repel", icon: "💨", type: "c-trick", target: "NONE", desc: "Dorong musuh dekat menjauh 5 langkah." },
+            { id: "TAX", name: "Taxman", icon: "💸", type: "c-trick", target: "NONE", desc: "Musuh -1, Kamu maju totalnya." },
+            { id: "BLACK_HOLE", name: "Blk Hole", icon: "🕳️", type: "c-trick", target: "NONE", desc: "Buat lubang hitam (Reset ke 1)." },
+
+            // DICE GOD (Kuning)
+            { id: "DICE_1", name: "Dice 1", icon: "1️⃣", type: "c-god", target: "SELF", desc: "Roll selanjutnya pasti 1." },
+            { id: "DICE_6", name: "Dice 6", icon: "6️⃣", type: "c-god", target: "SELF", desc: "Roll selanjutnya pasti 6." },
+            { id: "DOUBLE", name: "Double", icon: "🎰", type: "c-god", target: "SELF", desc: "Hasil dadu x2." },
+            { id: "SNAIL", name: "Snail", icon: "🐌", type: "c-god", target: "SELF", desc: "Hasil dadu dibagi 2." },
+            { id: "OVERDRIVE", name: "Overdrive", icon: "🔥", type: "c-god", target: "SELF", desc: "Dadu acak 4-12." },
+            { id: "GAMBLER", name: "Gambler", icon: "🃏", type: "c-god", target: "SELF", desc: "Gacha: +15 atau -5." },
+            { id: "DBL_TURN", name: "2x Turn", icon: "🔄", type: "c-god", target: "SELF", desc: "Main 2x berturut-turut." }
+        ];
+
         const COLORS = ["#00a8ff", "#9c88ff", "#fbc531", "#4cd137", "#e84118", "#0097e6"];
         const AVATARS = ["🤖", "👽", "👹", "🤡", "👻", "👾", "🎃", "🐯", "🐲", "💀"];
-        const CARD_DB = [
-            { id: "SNAKE_STRIKE", name: "Snake Strike", icon: "🐍", desc: "Kirim lawan ke ular belakang.", type: "c-attack", target: "ENEMY" },
-            { id: "BACKSTAB", name: "Backstab", icon: "🔪", desc: "Pemimpin mundur 10 langkah.", type: "c-attack", target: "NONE" },
-            { id: "TRAP", name: "Trap Set", icon: "💣", desc: "Pasang Ranjau (Mundur 5).", type: "c-defense", target: "NONE" },
-            { id: "NITRO", name: "Nitro", icon: "🚀", desc: "Maju 6 langkah.", type: "c-defense", target: "SELF" },
-            { id: "PIRATE", name: "Pirate", icon: "🏴‍☠️", desc: "Curi 1 Kartu Lawan.", type: "c-trick", target: "ENEMY" },
-            { id: "SKIP", name: "Freeze", icon: "❄️", desc: "Skip giliran lawan.", type: "c-attack", target: "ENEMY" }
-        ];
 
         let myName = "", currentRoomId = "", myPlayerId = "";
         let playerList = [];
@@ -254,22 +270,19 @@
         let turnTimerInterval = null;
         let isMyTurn = false, amIHost = false;
 
-        // EXPOSE FUNCTION
         window.createRoom = createRoom; window.joinRoom = joinRoom;
         window.startGame = startGame; window.handleRollAnim = handleRollAnim; 
         window.clickCard = clickCard; window.closeModal = closeModal; window.confirmTarget = confirmTarget;
         window.resetLocalData = resetLocalData; window.forceEndGame = forceEndGame;
 
-        // --- RECONNECT LOGIC ---
         (function checkSession() {
             const savedPid = localStorage.getItem("ut_pid");
             const savedRoom = localStorage.getItem("ut_room");
-            const savedName = localStorage.getItem("ut_name");
-            if(savedPid && savedRoom && savedName) {
+            if(savedPid && savedRoom) {
                 document.getElementById('reconnect-msg').style.display = 'block';
                 get(ref(db, `games/${savedRoom}`)).then(snap => {
                     if(snap.exists()) {
-                        myPlayerId = savedPid; myName = savedName;
+                        myPlayerId = savedPid; myName = localStorage.getItem("ut_name");
                         enterLobby(savedRoom, snap.val().host === savedPid);
                     } else resetLocalData();
                 });
@@ -278,35 +291,21 @@
 
         function resetLocalData() { localStorage.clear(); location.reload(); }
 
-        // --- MAP GENERATOR ---
         function generateRandomMap() {
             const map = {}; const taken = new Set([1, 100]);
-            // Ladders
-            for(let i=0; i<6; i++) { 
-                let s = Math.floor(Math.random()*80)+2; let e = s + Math.floor(Math.random()*20)+5;
-                if(e<100 && !taken.has(s)) { map[s]=e; taken.add(s); taken.add(e); }
-            }
-            // Snakes
-            for(let i=0; i<6; i++) { 
-                let h = Math.floor(Math.random()*90)+5; let t = h - Math.floor(Math.random()*30)-5;
-                if(t>1 && !taken.has(h)) { map[h]=t; taken.add(h); taken.add(t); }
-            }
-            // Mystery
-            for(let i=0; i<20; i++) {
-                let pos = Math.floor(Math.random()*96)+2;
-                if(!taken.has(pos)) { map[pos]="?"; taken.add(pos); }
-            }
+            for(let i=0; i<6; i++) { let s = Math.floor(Math.random()*80)+2; let e = s+Math.floor(Math.random()*20)+5; if(e<100&&!taken.has(s)){map[s]=e;taken.add(s);taken.add(e);} }
+            for(let i=0; i<6; i++) { let h = Math.floor(Math.random()*90)+5; let t = h-Math.floor(Math.random()*30)-5; if(t>1&&!taken.has(h)){map[h]=t;taken.add(h);taken.add(t);} }
+            for(let i=0; i<20; i++) { let pos = Math.floor(Math.random()*96)+2; if(!taken.has(pos)){map[pos]="?";taken.add(pos);} }
             return map;
         }
 
-        // --- LOBBY SYSTEM ---
         function createRoom() {
             myName = document.getElementById('username').value.trim();
             if(!myName) return alert("Isi nama dulu!");
             myPlayerId = "p_" + Date.now();
             const roomId = Math.random().toString(36).substring(2,6).toUpperCase();
             
-            const pData = { name: myName, isHost: true, position: 1, color: COLORS[0], avatar: AVATARS[0], id: myPlayerId, cards: [] };
+            const pData = { name: myName, isHost: true, position: 1, color: COLORS[0], avatar: AVATARS[0], id: myPlayerId, cards: [], status: {} };
 
             set(ref(db, `games/${roomId}`), {
                 status: "LOBBY", host: myPlayerId, turnIndex: 0, lastTurnTime: Date.now(),
@@ -327,7 +326,7 @@
                 if(snap.exists() && snap.val().status === "LOBBY") {
                     const currentPlayers = Object.keys(snap.val().players || {}).length;
                     if(currentPlayers >= 6) return alert("Room Penuh!");
-                    const pData = { name: myName, isHost: false, position: 1, color: COLORS[currentPlayers % COLORS.length], avatar: AVATARS[Math.floor(Math.random()*AVATARS.length)], id: myPlayerId, cards: [] };
+                    const pData = { name: myName, isHost: false, position: 1, color: COLORS[currentPlayers % COLORS.length], avatar: AVATARS[Math.floor(Math.random()*AVATARS.length)], id: myPlayerId, cards: [], status: {} };
                     set(ref(db, `games/${code}/players/${myPlayerId}`), pData).then(() => {
                         localStorage.setItem("ut_pid", myPlayerId); localStorage.setItem("ut_room", code); localStorage.setItem("ut_name", myName);
                         enterLobby(code, false);
@@ -346,14 +345,9 @@
             onValue(ref(db, `games/${roomId}/players`), snap => {
                 if(!snap.exists()) return;
                 const list = document.getElementById('player-list-ul'); list.innerHTML = ""; playerList = [];
-                snap.forEach(c => { 
-                    const p = c.val(); playerList.push(p);
-                    list.innerHTML += `<li style="padding:5px; border-left:4px solid ${p.color}; color:white;">${p.avatar} ${p.name}</li>`; 
-                });
+                snap.forEach(c => { const p = c.val(); playerList.push(p); list.innerHTML += `<li style="padding:5px; border-left:4px solid ${p.color}; color:white;">${p.avatar} ${p.name}</li>`; });
             });
-            onValue(ref(db, `games/${roomId}/status`), snap => {
-                if(snap.val() === "PLAYING" || snap.val() === "FINISHED") initGame();
-            });
+            onValue(ref(db, `games/${roomId}/status`), snap => { if(snap.val() === "PLAYING" || snap.val() === "FINISHED") initGame(); });
         }
 
         function startGame() {
@@ -362,37 +356,23 @@
             update(ref(db, `games/${currentRoomId}`), { status: "PLAYING", order: playerList.map(p => p.id), lastTurnTime: Date.now() });
         }
 
-        function forceEndGame() {
-            if(confirm("Selesaikan paksa?")) update(ref(db, `games/${currentRoomId}`), { status: "FINISHED", winnerName: "ADMIN" });
-        }
+        function forceEndGame() { if(confirm("Selesaikan paksa?")) update(ref(db, `games/${currentRoomId}`), { status: "FINISHED", winnerName: "ADMIN" }); }
 
-        // --- GAME ENGINE ---
         function initGame() {
             document.getElementById('screen-lobby').classList.add('hidden');
             document.getElementById('screen-game').classList.remove('hidden');
             if(amIHost) document.getElementById('host-end-btn').classList.remove('hidden');
 
-            // Render Board Once
-            get(ref(db, `games/${currentRoomId}`)).then(snap => {
-                const game = snap.val();
-                renderBoard(game.initialBoard || {});
-            });
+            get(ref(db, `games/${currentRoomId}`)).then(snap => { renderBoard(snap.val().initialBoard || {}); });
 
             onValue(ref(db, `games/${currentRoomId}`), snap => {
                 const game = snap.val();
                 if(!game || !game.order) return;
+                if(game.status === "FINISHED") { document.getElementById('screen-winner').classList.remove('hidden'); document.getElementById('winner-name-text').innerText = game.winnerName; return; }
 
-                if(game.status === "FINISHED") {
-                    document.getElementById('screen-winner').classList.remove('hidden');
-                    document.getElementById('winner-name-text').innerText = game.winnerName;
-                    return;
-                }
-
-                // Render Tokens (Smooth Movement)
                 updateAllTokens(game.players, game.order);
                 renderBoardEffects(game.boardEffects || {});
 
-                // Update UI Turn
                 const turnPid = game.order[game.turnIndex % game.order.length];
                 document.getElementById('turn-name').innerText = game.players[turnPid].name;
                 document.getElementById('game-log').innerHTML = (game.logs || []).slice(-5).join("<br>");
@@ -400,16 +380,11 @@
                 
                 if(game.players[myPlayerId]) renderInventory(game.players[myPlayerId].cards || []);
 
-                // Logic Button & Timer
                 isMyTurn = (turnPid === myPlayerId);
                 const btn = document.getElementById('btn-roll');
-                if(isMyTurn) {
-                    btn.disabled = false; btn.className = "btn-green"; btn.innerText = "🎲 KOCOK DADU";
-                } else {
-                    btn.disabled = true; btn.className = "btn-disabled"; btn.innerText = "⏳ MENUNGGU...";
-                }
+                btn.disabled = !isMyTurn; btn.className = isMyTurn ? "btn-green" : "btn-disabled";
+                btn.innerText = isMyTurn ? "🎲 KOCOK DADU" : "⏳ MENUNGGU...";
 
-                // Timer
                 if(turnTimerInterval) clearInterval(turnTimerInterval);
                 turnTimerInterval = setInterval(() => {
                     const timeLeft = Math.max(0, 15 - Math.floor((Date.now() - (game.lastTurnTime || Date.now()))/1000));
@@ -420,13 +395,9 @@
             });
         }
 
-        // --- RENDER FUNCTIONS ---
         function renderBoard(map) {
             const board = document.getElementById('game-board-area');
-            // Bersihkan tile lama tapi JANGAN hapus #token-layer
-            const tiles = board.querySelectorAll('.tile');
-            tiles.forEach(t => t.remove());
-
+            board.querySelectorAll('.tile').forEach(t => t.remove());
             for(let i=100; i>=1; i--) {
                 const tile = document.createElement('div'); tile.className = 'tile'; tile.id = `tile-${i}`;
                 if(map[i]) {
@@ -442,56 +413,38 @@
             for(let i=1; i<=100; i++) {
                 const tile = document.getElementById(`tile-${i}`);
                 if(!tile) continue;
-                tile.classList.remove('trap', 'snake'); // Reset fx visual
+                tile.classList.remove('trap', 'snake', 'wall', 'blackhole');
+                tile.style.border = "";
                 if(fx[i]) {
                     if(fx[i].type==="TRAP") { tile.classList.add('trap'); tile.innerText="💣"; }
-                    if(fx[i].type==="SNAKE") { tile.classList.add('snake'); tile.innerText="🐍"; }
+                    if(fx[i].type==="WALL") { tile.classList.add('wall'); tile.innerText="🧱"; }
+                    if(fx[i].type==="BLACK_HOLE") { tile.classList.add('blackhole'); tile.innerText="🕳️"; }
                 }
             }
         }
 
-        // --- NEW: SMOOTH TOKEN LOGIC ---
-        function updateAllTokens(players, order) {
+        function updateAllTokens(players) {
             const layer = document.getElementById('token-layer');
             const boardRect = document.getElementById('game-board-area').getBoundingClientRect();
-            const existingTokens = Array.from(layer.children);
-            const activeIds = Object.keys(players);
-
-            // Hapus token pemain yg leave
-            existingTokens.forEach(el => {
-                if(!activeIds.includes(el.dataset.pid)) el.remove();
-            });
+            Array.from(layer.children).forEach(el => { if(!players[el.dataset.pid]) el.remove(); });
 
             for(let pid in players) {
                 const p = players[pid];
                 let token = document.querySelector(`.token[data-pid="${pid}"]`);
+                if(!token) { token = document.createElement('div'); token.className = `token shape-circle`; token.dataset.pid = pid; token.style.backgroundColor = p.color; token.innerText = p.avatar; layer.appendChild(token); }
                 
-                // Create if not exist
-                if(!token) {
-                    token = document.createElement('div');
-                    token.className = `token shape-circle`;
-                    token.dataset.pid = pid;
-                    token.style.backgroundColor = p.color;
-                    token.innerText = p.avatar;
-                    layer.appendChild(token);
-                }
-
-                // Kalkulasi Posisi
                 const targetTile = document.getElementById(`tile-${p.position}`);
                 if(targetTile) {
-                    // Posisi relatif terhadap board
                     const tileRect = targetTile.getBoundingClientRect();
-                    // Koreksi offset agar di tengah kotak
-                    const top = tileRect.top - boardRect.top; // + (tileRect.height/2 - token.offsetHeight/2);
-                    const left = tileRect.left - boardRect.left; // + (tileRect.width/2 - token.offsetWidth/2);
-                    
-                    token.style.top = `${top}px`;
-                    token.style.left = `${left}px`;
+                    token.style.top = `${tileRect.top - boardRect.top}px`;
+                    token.style.left = `${tileRect.left - boardRect.left}px`;
                 }
-
-                // Effect Visuals
-                if(p.effects?.SKIP) token.style.border = "3px solid cyan";
-                else token.style.border = "2px solid white";
+                
+                // Status Visuals
+                token.style.border = "2px solid white";
+                if(p.status?.FREEZE) token.style.border = "3px solid cyan";
+                if(p.status?.POISON) token.style.boxShadow = "0 0 10px #00FF00";
+                if(p.status?.SHIELD) token.style.boxShadow = "0 0 10px yellow";
             }
         }
 
@@ -499,90 +452,100 @@
             const div = document.getElementById('inventory-area'); div.innerHTML = "";
             cards.forEach((cid, idx) => {
                 const c = CARD_DB.find(x => x.id === cid);
-                if(c) div.innerHTML += `<div class="card-item ${c.type}" onclick="clickCard(${idx}, '${cid}')"><span style="font-size:30px">${c.icon}</span><span style="font-size:9px">${c.name}</span></div>`;
+                if(c) div.innerHTML += `<div class="card-item ${c.type}" onclick="clickCard(${idx}, '${cid}')"><div class="card-name">${c.name}</div><div class="card-icon">${c.icon}</div><div class="card-desc">${c.desc}</div></div>`;
             });
         }
 
-        // --- DICE & LOGIC ---
         function handleRollAnim() {
             if(!isMyTurn) return;
-            const btn = document.getElementById('btn-roll');
-            const d1 = document.getElementById('dice-1');
-            const d2 = document.getElementById('dice-2');
-            
-            btn.disabled = true;
-            d1.classList.add('shaking'); d2.classList.add('shaking');
-
-            // Simulasi visual angka random
+            const btn = document.getElementById('btn-roll'); const d1 = document.getElementById('dice-1'); const d2 = document.getElementById('dice-2');
+            btn.disabled = true; d1.classList.add('shaking'); d2.classList.add('shaking');
             let count = 0;
             const intv = setInterval(() => {
-                d1.innerText = Math.ceil(Math.random()*6);
-                d2.innerText = Math.ceil(Math.random()*6);
-                count++;
-                if(count > 10) {
-                    clearInterval(intv);
-                    d1.classList.remove('shaking'); d2.classList.remove('shaking');
-                    executeRoll(false);
-                }
+                d1.innerText = Math.ceil(Math.random()*6); d2.innerText = Math.ceil(Math.random()*6);
+                count++; if(count > 10) { clearInterval(intv); d1.classList.remove('shaking'); d2.classList.remove('shaking'); executeRoll(false); }
             }, 80);
         }
 
+        // --- CORE GAME LOGIC ---
         function executeRoll(isAuto) {
             runTransaction(ref(db, `games/${currentRoomId}`), (game) => {
                 if(!game) return;
-                const totalPlayers = game.order.length;
-                if(totalPlayers === 0) return;
-
-                const pid = game.order[(game.turnIndex || 0) % totalPlayers];
+                const pid = game.order[(game.turnIndex || 0) % game.order.length];
                 const p = game.players[pid];
+                if(!p) { game.turnIndex++; return game; }
+                if(!isAuto && pid !== myPlayerId) return;
 
-                if(!p) { game.turnIndex++; return game; } // Skip error
-                if(!isAuto && pid !== myPlayerId) return; // Security check
+                if(!p.status) p.status = {};
+                let logMsg = "";
 
-                let logMsg = isAuto ? "💤 AFK." : "";
-
-                // Cek Freeze
-                if(p.effects?.SKIP) {
-                    p.effects.SKIP = null;
-                    addLog(game, `❄️ ${p.name} beku.`);
-                    game.turnIndex++; game.lastTurnTime = Date.now();
-                    return game;
+                // 1. PRE-TURN STATUS CHECK
+                if(p.status.FREEZE) {
+                    p.status.FREEZE--; if(p.status.FREEZE<=0) delete p.status.FREEZE;
+                    addLog(game, `❄️ ${p.name} beku, giliran lewat.`);
+                    game.turnIndex++; game.lastTurnTime = Date.now(); return game;
+                }
+                if(p.status.POISON) {
+                    p.position = Math.max(1, p.position - 2);
+                    p.status.POISON--; if(p.status.POISON<=0) delete p.status.POISON;
+                    logMsg += " 🧪 Racun -2!";
                 }
 
-                // Roll 2 Dadu
-                const roll1 = Math.ceil(Math.random() * 6);
-                const roll2 = Math.ceil(Math.random() * 6);
-                const totalRoll = roll1 + roll2;
+                // 2. DICE CALCULATION
+                let roll1 = Math.ceil(Math.random()*6);
+                let roll2 = Math.ceil(Math.random()*6);
                 
-                let newPos = (p.position || 1) + totalRoll;
-                if(newPos > 100) newPos = 100 - (newPos - 100); // Mantul balik
+                if(p.status.FORCE_ROLL) { roll1 = p.status.FORCE_ROLL; roll2 = 0; delete p.status.FORCE_ROLL; logMsg += " ⚡ Dice God!"; }
+                else if(p.status.OVERDRIVE) { roll1 = Math.floor(Math.random()*9)+4; roll2 = 0; delete p.status.OVERDRIVE; logMsg += " 🔥 Overdrive!"; }
+                else if(p.status.GAMBLER) { 
+                    const gacha = Math.random() > 0.5 ? 15 : -5; roll1 = gacha; roll2 = 0; delete p.status.GAMBLER; logMsg += (gacha>0)?" 🃏 JACKPOT!":" 🃏 ZONK!"; 
+                }
 
-                // Logika Papan
+                let totalRoll = roll1 + roll2;
+                if(p.status.DICE_MOD) { totalRoll = Math.floor(totalRoll * p.status.DICE_MOD); delete p.status.DICE_MOD; }
+                if(p.status.CONFUSE) { totalRoll = -totalRoll; p.status.CONFUSE--; if(p.status.CONFUSE<=0) delete p.status.CONFUSE; logMsg += " 💫 Bingung!"; }
+
+                // 3. MOVEMENT
+                let newPos = p.position + totalRoll;
+                if(newPos > 100) newPos = 100 - (newPos - 100);
+                if(newPos < 1) newPos = 1;
+
+                // 4. BOARD INTERACTION
                 const map = game.initialBoard || {};
                 const fx = game.boardEffects || {};
-                
+
+                // Cek efek tile
                 if(fx[newPos]) {
-                    if(fx[newPos].type === "TRAP") { newPos = Math.max(1, newPos-5); logMsg += " 💣 KENA BOM!"; delete fx[newPos]; } // Bom hilang stlh kena
-                    else if(fx[newPos].type === "SNAKE") { newPos = Math.max(1, newPos-10); logMsg += " 🐍 DIGIGIT!"; }
+                    if(p.status.SHIELD) {
+                         logMsg += " 🛡️ Tahan Efek!";
+                    } else {
+                        if(fx[newPos].type === "TRAP") { newPos = Math.max(1, newPos-5); logMsg += " 💣 BOOM!"; delete fx[newPos]; }
+                        if(fx[newPos].type === "WALL") { newPos = p.position; logMsg += " 🧱 DIBLOK!"; }
+                        if(fx[newPos].type === "BLACK_HOLE") { newPos = 1; logMsg += " 🕳️ TERSEDOT!"; }
+                    }
                 } else if(map[newPos]) {
+                    // Logic Ular Tangga / Mystery
                     if(map[newPos] === "?") {
                         const rand = CARD_DB[Math.floor(Math.random()*CARD_DB.length)];
-                        if(!p.cards) p.cards = [];
-                        p.cards.push(rand.id);
+                        if(!p.cards) p.cards = []; p.cards.push(rand.id);
                         logMsg += ` 🎴 Dapat ${rand.name}!`;
                     } else if(typeof map[newPos] === 'number') {
-                        const isUp = map[newPos] > newPos;
-                        newPos = map[newPos];
-                        logMsg += isUp ? " ⏫ NAIK TANGGA!" : " 🐍 TURUN ULAR!";
+                        if(p.status.SHIELD && map[newPos] < newPos) {
+                            logMsg += " 🛡️ Tahan Ular!";
+                        } else {
+                            const isUp = map[newPos] > newPos;
+                            newPos = map[newPos];
+                            logMsg += isUp ? " ⏫ NAIK!" : " 🐍 TURUN!";
+                        }
                     }
                 }
 
-                // --- NEW: PREDATOR LOGIC (TABRAK LARI) ---
-                if(newPos !== 1) { // Jangan makan di base
+                // 5. PREDATOR CHECK (Tabrak Lari)
+                if(newPos !== 1) {
                     for(let otherPid in game.players) {
                         if(otherPid !== pid && game.players[otherPid].position === newPos) {
                             game.players[otherPid].position = 1;
-                            logMsg += ` ⚔️ MENENDANG ${game.players[otherPid].name}!`;
+                            logMsg += ` ⚔️ TENDANG ${game.players[otherPid].name}!`;
                         }
                     }
                 }
@@ -590,8 +553,15 @@
                 p.position = newPos;
                 if(newPos === 100) { game.status = "FINISHED"; game.winnerName = p.name; }
 
+                // Decrement Shield/Anchor per turn
+                if(p.status.SHIELD) { p.status.SHIELD--; if(p.status.SHIELD<=0) delete p.status.SHIELD; }
+
                 addLog(game, `> ${p.name} (Roll ${totalRoll}) ke ${newPos}. ${logMsg}`);
-                game.turnIndex++;
+                
+                // Double Turn Check
+                if(p.status.DBL_TURN) { delete p.status.DBL_TURN; addLog(game, "🔄 Main lagi!"); }
+                else { game.turnIndex++; }
+                
                 game.lastTurnTime = Date.now();
                 return game;
             });
@@ -602,7 +572,6 @@
             if(!isMyTurn) return alert("Bukan giliranmu!");
             const c = CARD_DB.find(x => x.id === cid);
             selectedCardIdx = idx; selectedCardData = c;
-            
             if(c.target === "ENEMY") showTargetModal();
             else if(confirm(`Gunakan ${c.name}?`)) executeCard(null);
         }
@@ -610,13 +579,9 @@
         function showTargetModal() {
             const list = document.getElementById('target-list'); list.innerHTML = "";
             playerList.forEach(p => {
-                if(p.id !== myPlayerId) {
-                    list.innerHTML += `<button class="target-btn" onclick="confirmTarget('${p.id}')">
-                        <span>${p.avatar} ${p.name}</span> <span style="font-size:12px; color:#aaa">Pos: ${p.position}</span>
-                    </button>`;
-                }
+                if(p.id !== myPlayerId) list.innerHTML += `<button class="target-btn" onclick="confirmTarget('${p.id}')"><span>${p.avatar} ${p.name}</span> <span style="font-size:12px; color:#aaa">Pos: ${p.position}</span></button>`;
             });
-            if(!list.innerHTML) list.innerHTML = "<p>Tidak ada musuh.</p>";
+            if(!list.innerHTML) list.innerHTML = "<p>Tidak ada target.</p>";
             document.getElementById('modal-overlay').classList.remove('hidden');
         }
         function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
@@ -627,33 +592,81 @@
                 if(!game) return;
                 const me = game.players[myPlayerId];
                 const cid = selectedCardData.id;
+                let msg = `⚡ ${me.name} pakai ${selectedCardData.name}`;
 
-                if(cid === "NITRO") me.position = Math.min(100, me.position + 6);
+                // --- LOGIC 30 KARTU ---
+                
+                // ATTACK
+                if(cid === "SNAKE_BITE" && targetId) game.players[targetId].position = Math.max(1, game.players[targetId].position - 10);
                 if(cid === "BACKSTAB") {
-                    let leadId = null, max = 0;
-                    for(let pid in game.players) if(game.players[pid].position > max) { max = game.players[pid].position; leadId = pid; }
-                    if(leadId) game.players[leadId].position = Math.max(1, game.players[leadId].position - 10);
+                    let leadId=null, max=0; for(let pid in game.players) if(game.players[pid].position > max){max=game.players[pid].position; leadId=pid;}
+                    if(leadId) game.players[leadId].position = Math.max(1, max-10);
                 }
-                if(cid === "TRAP") { 
-                    if(!game.boardEffects) game.boardEffects = {};
-                    game.boardEffects[me.position] = { type: "TRAP" };
-                }
-                if(cid === "SKIP" && targetId) {
-                    if(!game.players[targetId].effects) game.players[targetId].effects = {};
-                    game.players[targetId].effects.SKIP = true;
-                }
-                if(cid === "SNAKE_STRIKE" && targetId) game.players[targetId].position = Math.max(1, game.players[targetId].position - 10); 
-                if(cid === "PIRATE" && targetId) {
-                    const enemyCards = game.players[targetId].cards;
-                    if(enemyCards && enemyCards.length > 0) {
-                        const stolen = enemyCards.pop();
-                        if(!me.cards) me.cards = [];
-                        me.cards.push(stolen);
+                if(cid === "FREEZE" && targetId) { if(!game.players[targetId].status) game.players[targetId].status={}; game.players[targetId].status.FREEZE=1; }
+                if(cid === "POISON" && targetId) { if(!game.players[targetId].status) game.players[targetId].status={}; game.players[targetId].status.POISON=3; }
+                if(cid === "METEOR") { for(let pid in game.players) if(pid!==myPlayerId) game.players[pid].position = Math.max(1, game.players[pid].position - 5); }
+                if(cid === "MAGNET") { 
+                    for(let pid in game.players) if(pid!==myPlayerId) {
+                        const p = game.players[pid];
+                        if(p.position < me.position) p.position += 5; else p.position = Math.max(1, p.position - 5);
                     }
                 }
+                if(cid === "EQUALIZER") { for(let pid in game.players) if(game.players[pid].position > me.position) game.players[pid].position = me.position; }
+                if(cid === "KAMIKAZE" && targetId) { me.position = 1; game.players[targetId].position = 1; }
+
+                // DEFENSE
+                if(cid === "NITRO") me.position = Math.min(100, me.position + 6);
+                if(cid === "SUPER_JUMP") me.position = Math.min(100, me.position + 12);
+                if(cid === "SHIELD") { if(!me.status) me.status={}; me.status.SHIELD = 1; } // 1 Turn
+                if(cid === "ANCHOR") { if(!me.status) me.status={}; me.status.ANCHOR = 1; }
+                if(cid === "WALL") { if(!game.boardEffects) game.boardEffects={}; game.boardEffects[me.position] = {type:"WALL"}; }
+                if(cid === "TRAP") { if(!game.boardEffects) game.boardEffects={}; game.boardEffects[me.position] = {type:"TRAP"}; }
+                if(cid === "CHECKPOINT") { if(!me.status) me.status={}; me.status.CHECKPOINT = me.position; }
+                if(cid === "PURIFY") { me.status = {}; }
+
+                // TRICK
+                if(cid === "PIRATE" && targetId) { 
+                    if(game.players[targetId].cards?.length > 0) {
+                        const stolen = game.players[targetId].cards.pop();
+                        if(!me.cards) me.cards=[]; me.cards.push(stolen);
+                    }
+                }
+                if(cid === "PORTAL" && targetId) { const tmp = me.position; me.position = game.players[targetId].position; game.players[targetId].position = tmp; }
+                if(cid === "SWAP_RND") {
+                    const ids = Object.keys(game.players).filter(id => id !== myPlayerId);
+                    if(ids.length > 0) {
+                        const rndId = ids[Math.floor(Math.random()*ids.length)];
+                        const tmp = me.position; me.position = game.players[rndId].position; game.players[rndId].position = tmp;
+                    }
+                }
+                if(cid === "CONFUSE" && targetId) { if(!game.players[targetId].status) game.players[targetId].status={}; game.players[targetId].status.CONFUSE=1; }
+                if(cid === "REPEL") {
+                    for(let pid in game.players) if(pid!==myPlayerId) {
+                        const dist = Math.abs(game.players[pid].position - me.position);
+                        if(dist <= 5) game.players[pid].position = Math.max(1, game.players[pid].position - 5);
+                    }
+                }
+                if(cid === "TAX") {
+                    let totalSteal = 0;
+                    for(let pid in game.players) if(pid!==myPlayerId && game.players[pid].position > 1) {
+                        game.players[pid].position -= 1; totalSteal++;
+                    }
+                    me.position = Math.min(100, me.position + totalSteal);
+                }
+                if(cid === "BLACK_HOLE") { if(!game.boardEffects) game.boardEffects={}; game.boardEffects[me.position] = {type:"BLACK_HOLE"}; }
+
+                // DICE GOD
+                if(!me.status) me.status = {};
+                if(cid === "DICE_1") me.status.FORCE_ROLL = 1;
+                if(cid === "DICE_6") me.status.FORCE_ROLL = 6;
+                if(cid === "DOUBLE") me.status.DICE_MOD = 2;
+                if(cid === "SNAIL") me.status.DICE_MOD = 0.5;
+                if(cid === "OVERDRIVE") me.status.OVERDRIVE = true;
+                if(cid === "GAMBLER") me.status.GAMBLER = true;
+                if(cid === "DBL_TURN") me.status.DBL_TURN = true;
 
                 me.cards.splice(selectedCardIdx, 1);
-                addLog(game, `⚡ ${me.name} pakai ${selectedCardData.name}`);
+                addLog(game, msg);
                 return game;
             });
         }
