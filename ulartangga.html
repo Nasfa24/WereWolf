@@ -49,23 +49,76 @@
 
         /* GAME BOARD AREA */
         #game-board-area { 
-            display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; 
-            background: #2f3542; padding: 5px; border-radius: 8px; margin-bottom: 20px; 
+            display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; /* Gap diperbesar sedikit agar tactile lebih terasa */
+            background: #2f3542; padding: 8px; border-radius: 8px; margin-bottom: 20px; 
             position: relative; aspect-ratio: 1 / 1; border: 2px solid #57606f; 
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
+        /* --- VISUAL UPDATE: TACTILE TILES --- */
         .tile { 
-            background: #353b48; color: rgba(255, 255, 255, 0.3); display: flex; justify-content: center; align-items: center; 
+            background: #353b48; color: rgba(255, 255, 255, 0.3); 
+            display: flex; justify-content: center; align-items: center; 
             font-size: 9px; border-radius: 3px; font-weight: bold; user-select: none; position: relative;
+            /* Efek Tombol Timbul (Keypad) */
+            box-shadow: 
+                inset 1px 1px 0 rgba(255,255,255,0.1), /* Highlight Atas */
+                inset -1px -1px 0 rgba(0,0,0,0.5),    /* Shadow Dalam Bawah */
+                0 2px 0 rgba(0,0,0,0.2);              /* Shadow Luar (Tebal) */
+            transition: all 0.1s;
         }
-        .tile.ladder { background: #00b894; color: white; border: 1px solid #55efc4; }
-        .tile.snake { background: #d63031; color: white; border: 1px solid #ff7675; }
-        .tile.mystery { background: #6c5ce7; color: white; font-size: 14px; border: 1px solid #a29bfe; }
+
+        /* Class untuk efek injakan (diaktifkan JS) */
+        .tile.stepped-on {
+            background: var(--primary) !important;
+            color: #000 !important;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.5) !important; /* Efek tombol ditekan */
+            transform: translateY(1px);
+            z-index: 5;
+        }
+
+        /* --- VISUAL UPDATE: ZONA SPESIAL --- */
+        .tile.ladder { 
+            /* Efek Grid Neon Hijau */
+            background-color: #006266;
+            background-image: 
+                linear-gradient(rgba(0, 255, 157, 0.3) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 157, 0.3) 1px, transparent 1px);
+            background-size: 4px 4px;
+            color: white; border: 1px solid #55efc4; 
+        }
+        
+        .tile.snake { 
+            /* Efek Hazard Stripes (Garis Bahaya) */
+            background: repeating-linear-gradient(
+                45deg,
+                #c0392b,
+                #c0392b 5px,
+                #e74c3c 5px,
+                #e74c3c 10px
+            );
+            color: white; border: 1px solid #ff7675; text-shadow: 0 0 2px black;
+        }
+        
+        .tile.mystery { 
+            background: #6c5ce7; color: white; font-size: 14px; 
+            border: 1px solid #a29bfe; 
+            /* Animasi Berdenyut */
+            animation: pulse-purple 1.5s infinite alternate;
+        }
+        @keyframes pulse-purple {
+            from { box-shadow: 0 0 2px #a29bfe; transform: scale(1); }
+            to { box-shadow: 0 0 10px #a29bfe; transform: scale(1.05); }
+        }
+
         .tile.trap { background: #000; border: 2px solid red; color: red; }
         .tile.wall { background: #7f8fa6; border: 2px solid white; color: white; }
         .tile.blackhole { background: black; border: 2px solid #a29bfe; color: #a29bfe; box-shadow: inset 0 0 10px #a29bfe; }
-        #tile-100 { background: #fdcb6e; color: #d35400; border: 2px solid white; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        
+        #tile-100 { 
+            background: #fdcb6e; color: #d35400; border: 2px solid white; 
+            box-shadow: inset 0 0 10px rgba(255,255,255,0.5), 0 0 10px gold; 
+        }
 
         /* TOKEN SYSTEM - UPDATED FOR STEP ANIMATION */
         #token-layer {
@@ -196,7 +249,7 @@
     </div>
 
     <div id="screen-winner" class="hidden">
-        <h1 style="font-size:3rem; color:#fdcb6e;">JUARA 1!</h1>
+        <h1 id="winner-title" style="font-size:3rem; color:#fdcb6e;">JUARA 1!</h1>
         <h2 id="winner-name-text" style="color:white; font-size:2.5rem;">NAMA</h2>
         <button class="btn-green" style="width:200px; margin-top:30px;" onclick="resetLocalData()">MAIN LAGI</button>
     </div>
@@ -358,7 +411,15 @@
             update(ref(db, `games/${currentRoomId}`), { status: "PLAYING", order: playerList.map(p => p.id), lastTurnTime: Date.now() });
         }
 
-        function forceEndGame() { if(confirm("Selesaikan paksa?")) update(ref(db, `games/${currentRoomId}`), { status: "FINISHED", winnerName: "ADMIN" }); }
+        // --- UPDATE ADMIN LOGIC ---
+        function forceEndGame() { 
+            if(confirm("Selesaikan paksa?")) {
+                update(ref(db, `games/${currentRoomId}`), { 
+                    status: "FINISHED", 
+                    winnerName: "HOST_FORCE_END" // Special Code
+                });
+            }
+        }
 
         function initGame() {
             document.getElementById('screen-lobby').classList.add('hidden');
@@ -370,7 +431,25 @@
             onValue(ref(db, `games/${currentRoomId}`), snap => {
                 const game = snap.val();
                 if(!game || !game.order) return;
-                if(game.status === "FINISHED") { document.getElementById('screen-winner').classList.remove('hidden'); document.getElementById('winner-name-text').innerText = game.winnerName; return; }
+                
+                if(game.status === "FINISHED") { 
+                    document.getElementById('screen-winner').classList.remove('hidden'); 
+                    const titleEl = document.getElementById('winner-title');
+                    const nameEl = document.getElementById('winner-name-text');
+
+                    if(game.winnerName === "HOST_FORCE_END") {
+                        titleEl.innerText = "GAME OVER";
+                        titleEl.style.color = "#ff4757"; // Red color
+                        nameEl.innerText = "PERMAINAN DISELESAIKAN HOST";
+                        nameEl.style.fontSize = "1.5rem";
+                    } else {
+                        titleEl.innerText = "JUARA 1!";
+                        titleEl.style.color = "#fdcb6e";
+                        nameEl.innerText = game.winnerName;
+                        nameEl.style.fontSize = "2.5rem";
+                    }
+                    return; 
+                }
 
                 updateAllTokens(game.players);
                 renderBoardEffects(game.boardEffects || {});
@@ -416,7 +495,12 @@
                 const tile = document.getElementById(`tile-${i}`);
                 if(!tile) continue;
                 tile.classList.remove('trap', 'snake', 'wall', 'blackhole');
+                // Reset styles
                 tile.style.border = "";
+                if(!tile.classList.contains('ladder') && !tile.classList.contains('mystery') && !tile.id.includes('100')) {
+                     // Keep base style if not special
+                }
+
                 if(fx[i]) {
                     if(fx[i].type==="TRAP") { tile.classList.add('trap'); tile.innerText="💣"; }
                     if(fx[i].type==="WALL") { tile.classList.add('wall'); tile.innerText="🧱"; }
@@ -425,7 +509,6 @@
             }
         }
 
-        // --- NEW: STEP-BY-STEP MOVEMENT LOGIC ---
         function updateAllTokens(players) {
             const layer = document.getElementById('token-layer');
             Array.from(layer.children).forEach(el => { if(!players[el.dataset.pid]) el.remove(); });
@@ -450,17 +533,14 @@
                     const targetPos = p.position;
                     const diff = targetPos - currentVisPos;
 
-                    // Syarat Animasi Langkah: Bergerak Maju & Jarak Wajar (Max 12 aka 2 Dadu)
                     if(diff > 0 && diff <= 12) {
                         animateSteps(token, currentVisPos, targetPos, pid);
                     } else {
-                        // Kalau mundur (ular) atau lompat jauh (portal), slide biasa
-                        setTokenPos(token, targetPos, true); // True = Slow slide
+                        setTokenPos(token, targetPos, true); 
                         localPlayerPositions[pid] = targetPos;
                     }
                 }
 
-                // Visual Status
                 token.style.border = "2px solid white";
                 if(p.status?.FREEZE) token.style.border = "3px solid cyan";
                 if(p.status?.POISON) token.style.boxShadow = "0 0 10px #00FF00";
@@ -480,20 +560,30 @@
             }
         }
 
+        // --- UPDATED ANIMATION: Footstep Feedback ---
         function animateSteps(token, start, end, pid) {
             let current = start;
-            // Loop step dengan jeda
             function step() {
                 if(current < end) {
                     current++;
                     setTokenPos(token, current, false); // False = Fast step
-                    setTimeout(step, 250); // Jeda antar langkah 250ms (Tek.. Tek.. Tek..)
+                    
+                    // Visual Feedback: Light up the tile!
+                    const tileEl = document.getElementById('tile-' + current);
+                    if(tileEl) {
+                        tileEl.classList.add('stepped-on');
+                        // Remove class after short delay
+                        setTimeout(() => {
+                            if(tileEl) tileEl.classList.remove('stepped-on');
+                        }, 200);
+                    }
+
+                    setTimeout(step, 250); // Jeda antar langkah
                 } else {
                     localPlayerPositions[pid] = end; // Sync akhir
                 }
             }
             step();
-            // Update lokal tracker supaya gak re-trigger
             localPlayerPositions[pid] = end; 
         }
 
@@ -516,7 +606,6 @@
             }, 80);
         }
 
-        // --- CORE GAME LOGIC ---
         function executeRoll(isAuto) {
             runTransaction(ref(db, `games/${currentRoomId}`), (game) => {
                 if(!game) return;
@@ -528,7 +617,6 @@
                 if(!p.status) p.status = {};
                 let logMsg = "";
 
-                // 1. PRE-TURN STATUS CHECK
                 if(p.status.FREEZE) {
                     p.status.FREEZE--; if(p.status.FREEZE<=0) delete p.status.FREEZE;
                     addLog(game, `❄️ ${p.name} beku, giliran lewat.`);
@@ -540,7 +628,6 @@
                     logMsg += " 🧪 Racun -2!";
                 }
 
-                // 2. DICE CALCULATION
                 let roll1 = Math.ceil(Math.random()*6);
                 let roll2 = Math.ceil(Math.random()*6);
                 
@@ -554,12 +641,10 @@
                 if(p.status.DICE_MOD) { totalRoll = Math.floor(totalRoll * p.status.DICE_MOD); delete p.status.DICE_MOD; }
                 if(p.status.CONFUSE) { totalRoll = -totalRoll; p.status.CONFUSE--; if(p.status.CONFUSE<=0) delete p.status.CONFUSE; logMsg += " 💫 Bingung!"; }
 
-                // 3. MOVEMENT
                 let newPos = p.position + totalRoll;
                 if(newPos > 100) newPos = 100 - (newPos - 100);
                 if(newPos < 1) newPos = 1;
 
-                // 4. BOARD INTERACTION
                 const map = game.initialBoard || {};
                 const fx = game.boardEffects || {};
 
@@ -611,7 +696,6 @@
             });
         }
 
-        // --- CARD LOGIC ---
         function clickCard(idx, cid) {
             if(!isMyTurn) return alert("Bukan giliranmu!");
             const c = CARD_DB.find(x => x.id === cid);
