@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#1a1a2e">
-    <title>LUNA - Werewolf Game</title>
+    <title>LUNA - Werewolf Game (Fast Paced)</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌙</text></svg>">
 
@@ -131,7 +131,6 @@
             box-shadow: 0 0 30px var(--accent); width: 100%; max-width: 350px;
         }
         
-        /* GUIDE BOX STYLING */
         .guide-box {
             background: #1e272e; width: 100%; max-width: 400px; height: 80%;
             border-radius: 20px; display: flex; flex-direction: column;
@@ -159,11 +158,42 @@
             color: var(--accent); font-size: 1.5rem; font-weight: bold;
         }
 
+        /* --- NEW STYLES: DISCUSSION & LOBBY --- */
+        .lobby-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 15px 0; width: 100%; }
+        .lobby-tag { background: rgba(255, 255, 255, 0.15); padding: 5px 12px; border-radius: 15px; font-size: 0.9rem; color: white; border: 1px solid rgba(255,255,255,0.2); animation: fadeIn 0.3s; }
+        
+        .discuss-status { margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .discuss-progress { font-size: 0.9rem; margin-bottom: 5px; color: #aaa; }
+        .ready-names { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; }
+        .ready-tag { font-size: 0.8rem; background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; }
+
+        /* --- CINEMATIC NOTIFICATIONS --- */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 4000; width: 90%; max-width: 300px; text-align: center; pointer-events: none; }
+        .toast { background: rgba(30, 30, 46, 0.95); color: white; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; font-weight: bold; border: 1px solid var(--accent); box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideDownToast 0.3s ease-out; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        @keyframes slideDownToast { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        #custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 5000; display: flex; justify-content: center; align-items: center; }
+        .custom-modal { background: #2f3542; width: 85%; max-width: 350px; padding: 25px; border-radius: 15px; border: 2px solid var(--accent); text-align: center; box-shadow: 0 0 30px rgba(255, 211, 105, 0.2); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-title { font-size: 1.2rem; font-weight: 800; color: white; margin-bottom: 10px; text-transform: uppercase; }
+        .modal-text { font-size: 0.9rem; color: #ccc; margin-bottom: 20px; line-height: 1.4; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        
+        #splash-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 4500; pointer-events: none; display: flex; justify-content: center; align-items: center; }
+        .splash-content { text-align: center; animation: splashAnim 2s forwards; }
+        .splash-icon { font-size: 100px; filter: drop-shadow(0 0 20px white); }
+        .splash-text { font-size: 2rem; font-weight: 900; color: white; text-transform: uppercase; text-shadow: 0 0 10px var(--accent); margin-top: -10px; }
+        @keyframes splashAnim { 0% { transform: scale(0); opacity: 0; } 20% { transform: scale(1.2); opacity: 1; } 30% { transform: scale(1); opacity: 1; } 80% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideDown { from { top: -50px; } to { top: 70px; } }
     </style>
 </head>
 <body>
+
+    <div id="toast-container"></div>
+    <div id="splash-overlay" class="hidden"></div>
+    <div id="custom-modal-overlay" class="hidden"></div>
 
     <div id="screenLoading">Memulihkan Sesi...</div>
 
@@ -173,24 +203,16 @@
             <h1>LUNA</h1>
             <div class="subtitle">WEREWOLF GAME</div>
             <br>
-            
             <input type="text" id="inputName" placeholder="NAMA KAMU">
-            <button onclick="createRoom()">
-                <span class="material-symbols-rounded small-icon">add_circle</span> BUAT ROOM
-            </button>
-            <button class="secondary" onclick="showJoin()">
-                <span class="material-symbols-rounded small-icon">login</span> GABUNG
-            </button>
-            
-            <button class="info" onclick="toggleGuide(true)">
-                <span class="material-symbols-rounded small-icon">menu_book</span> PANDUAN
-            </button>
+            <button onclick="createRoom()"><span class="material-symbols-rounded small-icon">add_circle</span> BUAT ROOM</button>
+            <button class="secondary" onclick="showJoin()"><span class="material-symbols-rounded small-icon">login</span> GABUNG</button>
+            <button class="info" onclick="toggleGuide(true)"><span class="material-symbols-rounded small-icon">menu_book</span> PANDUAN</button>
         </div>
 
         <div id="viewJoin" class="hidden">
             <h1>GABUNG</h1>
             <p>Minta 4 Huruf Kode ke Host</p>
-            <input type="text" id="inputCode" placeholder="KODE (CONTOH: ABCD)" maxlength="4" style="text-transform:uppercase; letter-spacing: 5px; font-size: 1.5rem;">
+            <input type="text" id="inputCode" placeholder="KODE" maxlength="4" style="text-transform:uppercase; letter-spacing: 5px; font-size: 1.5rem;">
             <button onclick="joinRoom()">MASUK ROOM</button>
             <button class="secondary" onclick="location.reload()">BATAL</button>
         </div>
@@ -202,11 +224,9 @@
                 <span class="material-symbols-rounded" style="font-size: 2rem;">group</span>
                 <p style="margin:0;"><span id="pCount">0</span> Pemain Masuk</p>
             </div>
-            
+            <div id="lobbyPlayerList" class="lobby-list"></div>
             <div id="hostPanel" class="hidden">
-                <button onclick="startGame()" style="background:var(--accent); color:black;">
-                    <span class="material-symbols-rounded small-icon">play_circle</span> MULAI GAME
-                </button>
+                <button onclick="startGame()" style="background:var(--accent); color:black;"><span class="material-symbols-rounded small-icon">play_circle</span> MULAI GAME</button>
                 <p style="font-size:0.8rem; color:#aaa;">Distribusi peran otomatis.</p>
                 <button class="end-game" onclick="deleteRoom()">HAPUS ROOM</button>
             </div>
@@ -218,7 +238,6 @@
         <div class="fab-role" onclick="toggleRole()">
             <span class="material-symbols-rounded" style="font-size:1.2rem">visibility</span> PERAN
         </div>
-
         <div id="privateMsg" class="msg-toast hidden"></div>
 
         <div style="margin-top: 50px;">
@@ -228,6 +247,16 @@
 
         <div id="phaseDesc">Menghubungkan ke server...</div>
         
+        <div id="discussArea" class="hidden">
+            <button onclick="voteEndDiscuss()" style="background:#2ecc71; color:white; width:auto; margin:0 auto; padding: 10px 20px; font-size:0.9rem;">
+                <span class="material-symbols-rounded small-icon">thumb_up</span> SELESAI DISKUSI
+            </button>
+            <div class="discuss-status">
+                <div class="discuss-progress">Menunggu suara: <span id="discussCount">0/0</span></div>
+                <div id="discussNames" class="ready-names"></div>
+            </div>
+        </div>
+
         <div id="actionArea" class="hidden" style="flex-grow:1; display:flex; flex-direction:column;">
             <div id="playerGrid" class="player-grid"></div>
             <button id="btnAction" onclick="submitAction()" style="margin-top:auto; background:var(--accent); color:black;">
@@ -258,32 +287,16 @@
                 <button onclick="toggleGuide(false)" style="width:auto; padding:5px 15px; font-size:0.8rem; margin:0;">TUTUP</button>
             </div>
             <div class="guide-content">
-                <p>Selamat datang di <b>LUNA</b>, permainan Werewolf Phygital. HP-mu adalah identitasmu.</p>
-                
+                <p>Selamat datang di <b>LUNA</b>, permainan Werewolf Phygital.</p>
                 <h3>🎭 PERAN (ROLE)</h3>
                 <ul>
-                    <li>🐺 <b>WEREWOLF (Jahat):</b> Tiap malam pilih satu korban untuk dimangsa.</li>
-                    <li>👁️ <b>SEER (Desa):</b> Tiap malam terawang satu orang. Sistem akan memberitahu dia JAHAT/BAIK.</li>
-                    <li>💉 <b>DOCTOR (Desa):</b> Lindungi satu orang (bisa diri sendiri) dari serangan malam.</li>
-                    <li>🛡️ <b>BODYGUARD (Desa):</b> Lindungi orang. Jika dia diserang, dia selamat TAPI kamu & penyerang mati (Double Kill).</li>
-                    <li>🔫 <b>HUNTER (Desa):</b> Pilih target. Jika kamu mati malam ini, targetmu ikut mati tertembak.</li>
-                    <li>👱 <b>VILLAGER (Desa):</b> Warga biasa. Gunakan insting saat diskusi & voting.</li>
+                    <li>🐺 <b>WEREWOLF:</b> Mangsa warga tiap malam.</li>
+                    <li>👁️ <b>SEER:</b> Terawang satu orang (Jahat/Baik).</li>
+                    <li>💉 <b>DOCTOR:</b> Lindungi satu orang.</li>
+                    <li>🛡️ <b>BODYGUARD:</b> Lindungi orang. Jika diserang, kamu & penyerang mati.</li>
+                    <li>🔫 <b>HUNTER:</b> Jika mati malam, tembak targetmu.</li>
+                    <li>👱 <b>VILLAGER:</b> Warga biasa. Diskusi & Voting.</li>
                 </ul>
-
-                <h3>🤫 FITUR "DISGUISED INPUT"</h3>
-                <p>Saat malam, <b>SEMUA ORANG</b> (termasuk Warga) wajib menekan HP seolah-olah memilih target. Ini agar Werewolf tidak ketahuan!</p>
-                <ul>
-                    <li>Warga = Klik Dummy (Kosong)</li>
-                    <li>Werewolf = Klik Membunuh</li>
-                </ul>
-
-                <h3>⚠️ ATURAN MAIN</h3>
-                <ol>
-                    <li><b>Dilarang intip HP teman.</b></li>
-                    <li><b>Jika Mati = DIAM.</b> Jangan beri kode.</li>
-                    <li>Naikkan Brightness HP agar wajah terlihat.</li>
-                </ol>
-                <br><br>
             </div>
         </div>
     </div>
@@ -295,16 +308,14 @@
         <button onclick="clearSession()" style="width:auto; padding: 15px 40px;">KEMBALI KE LOBBY</button>
     </div>
 
-    <div class="app-version">Luna V.1.2</div>
+    <div class="app-version">Luna V.1.3 (Fast Paced)</div>
 
     <script type="module">
-	// ... kode lama ...
+        const savedHubName = localStorage.getItem("ww_name");
+        if (savedHubName && !document.getElementById("inputName").value) {
+            document.getElementById("inputName").value = savedHubName;
+        }
 
-// TAMBAHAN: Cek apakah ada nama titipan dari LUNA ARCADE
-const savedHubName = localStorage.getItem("ww_name");
-if (savedHubName && !document.getElementById("inputName").value) {
-    document.getElementById("inputName").value = savedHubName;
-}
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
         import { getDatabase, ref, set, update, onValue, remove, onDisconnect, get } 
         from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
@@ -322,34 +333,56 @@ if (savedHubName && !document.getElementById("inputName").value) {
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // --- VISUAL HELPERS ---
+        window.showToast = function(msg, isError = false) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = isError ? `⚠️ ${msg}` : `ℹ️ ${msg}`;
+            if(isError) toast.style.border = "1px solid #ff4757";
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        window.showConfirmModal = function(title, text, onConfirm) {
+            const overlay = document.getElementById('custom-modal-overlay');
+            overlay.innerHTML = `
+                <div class="custom-modal">
+                    <div class="modal-title">${title}</div>
+                    <div class="modal-text">${text}</div>
+                    <div class="modal-actions">
+                        <button id="modal-yes" class="btn-green" style="width:auto; padding:10px 20px; background:#2ecc71;">YA</button>
+                        <button id="modal-no" class="btn-red" style="width:auto; padding:10px 20px; background:#e74c3c;">BATAL</button>
+                    </div>
+                </div>
+            `;
+            overlay.classList.remove('hidden');
+            setTimeout(() => {
+                document.getElementById('modal-yes').onclick = () => { overlay.classList.add('hidden'); onConfirm(); };
+                document.getElementById('modal-no').onclick = () => { overlay.classList.add('hidden'); };
+            }, 50);
+        }
+
+        window.showCardSplash = function(name, icon) {
+            const splash = document.getElementById('splash-overlay');
+            splash.innerHTML = `<div class="splash-content"><div class="splash-icon">${icon}</div><div class="splash-text">${name}</div></div>`;
+            splash.classList.remove('hidden');
+            setTimeout(() => splash.classList.add('hidden'), 2000);
+        }
+
         // --- ASSETS ---
         const singleQuestions = [
-            "Siapa yang tatapan matanya paling mencurigakan?", "Siapa yang paling jago berbohong?",
-            "Siapa yang terlihat paling gugup?", "Siapa yang senyumnya terlihat palsu?",
-            "Siapa yang paling banyak diam?", "Siapa yang bicaranya paling berbelit-belit?",
-            "Siapa yang paling mungkin jadi dalang?", "Siapa yang ekspresinya susah ditebak?",
-            "Siapa yang paling menghindari kontak mata?", "Siapa yang paling ambisius menang?",
-            "Jika ada zombie, siapa yang kamu korbankan?", "Siapa yang mati duluan di film horor?",
-            "Siapa yang akan kamu ajak kerjasama di pulau?", "Siapa yang paling tega meninggalkan teman?",
-            "Siapa yang outfit-nya paling keren?", "Siapa yang paling sering telat?",
-            "Siapa yang wajahnya paling polos?", "Siapa yang paling sering drama?",
-            "Pusatkan energimu. Siapa yang auranya gelap?", "Secara insting, siapa yang membuatmu tidak nyaman?",
-            "Siapa yang terasa paling jauh darimu?", "Siapa yang memancarkan energi dominan?",
-            "Siapa yang sulit kamu percaya 100%?", "Siapa yang punya rahasia terbesar?",
-            "Siapa yang ingin kamu singkirkan dari meja?", "Kepada siapa intuisimu tertuju?"
+            "Siapa yang tatapan matanya paling mencurigakan?", "Siapa yang paling jago berbohong?", "Siapa yang terlihat paling gugup?",
+            "Siapa yang senyumnya terlihat palsu?", "Siapa yang paling banyak diam?", "Siapa yang bicaranya paling berbelit-belit?",
+            "Siapa yang paling mungkin jadi dalang?", "Siapa yang ekspresinya susah ditebak?", "Siapa yang paling menghindari kontak mata?",
+            "Siapa yang paling ambisius menang?", "Jika ada zombie, siapa yang kamu korbankan?", "Siapa yang mati duluan di film horor?",
+            "Siapa yang akan kamu ajak kerjasama di pulau?", "Siapa yang paling tega meninggalkan teman?", "Siapa yang outfit-nya paling keren?",
+            "Siapa yang paling sering telat?", "Siapa yang wajahnya paling polos?", "Siapa yang paling sering drama?",
+            "Pusatkan energimu. Siapa yang auranya gelap?", "Secara insting, siapa yang membuatmu tidak nyaman?"
         ];
         
-        const PHASE_ICONS = {
-            "STARTING": "hourglass_top", "NIGHT": "bedtime", 
-            "DAY_ANNOUNCE": "wb_sunny", "DAY_DISCUSS": "forum", 
-            "VOTING": "how_to_vote", "GAME_OVER": "emoji_events"
-        };
-
-        const PHASE_COLORS = {
-            "STARTING": "#2c3e50", "NIGHT": "#0f3460", 
-            "DAY_ANNOUNCE": "#f1c40f", "DAY_DISCUSS": "#3282b8", 
-            "VOTING": "#e94560"
-        };
+        const PHASE_ICONS = { "STARTING": "hourglass_top", "NIGHT": "bedtime", "DAY_ANNOUNCE": "wb_sunny", "DAY_DISCUSS": "forum", "VOTING": "how_to_vote", "GAME_OVER": "emoji_events" };
+        const PHASE_COLORS = { "STARTING": "#2c3e50", "NIGHT": "#0f3460", "DAY_ANNOUNCE": "#f1c40f", "DAY_DISCUSS": "#3282b8", "VOTING": "#e94560" };
 
         function getNightContent(round) {
             const index = (round - 1) % singleQuestions.length;
@@ -362,14 +395,12 @@ if (savedHubName && !document.getElementById("inputName").value) {
         let selectedTarget = null, allPlayers = {}, roleFetched = false;
         let hostLocalTimer = 0, lastRenderedPhase = "";
 
-        // --- NEW: GUIDE TOGGLE ---
         window.toggleGuide = (show) => {
             const guide = document.getElementById("overlayGuide");
-            if(show) guide.classList.remove("hidden");
-            else guide.classList.add("hidden");
+            if(show) guide.classList.remove("hidden"); else guide.classList.add("hidden");
         }
 
-        // --- RESTORE SESSION ---
+        // --- SESSION ---
         (function restoreSession() {
             const savedRoom = localStorage.getItem("ww_room");
             const savedName = localStorage.getItem("ww_name");
@@ -377,70 +408,46 @@ if (savedHubName && !document.getElementById("inputName").value) {
             const savedHost = localStorage.getItem("ww_host");
 
             if (savedRoom && savedName && savedId) {
-                roomCode = savedRoom;
-                myName = savedName;
-                myId = savedId;
-                isHost = (savedHost === "true");
-                
+                roomCode = savedRoom; myName = savedName; myId = savedId; isHost = (savedHost === "true");
                 get(ref(db, `rooms/${roomCode}/players/${myId}/role`)).then(snap => {
                     if (snap.exists()) myRole = snap.val();
-                    setupLobby(); 
-                    listenRoom(); 
-                }).catch(() => {
-                    document.getElementById("screenLoading").classList.add("hidden");
-                    document.getElementById("screenLobby").classList.remove("hidden");
-                });
+                    setupLobby(); listenRoom(); 
+                }).catch(() => { document.getElementById("screenLoading").classList.add("hidden"); document.getElementById("screenLobby").classList.remove("hidden"); });
             } else {
-                document.getElementById("screenLoading").classList.add("hidden");
-                document.getElementById("screenLobby").classList.remove("hidden");
+                document.getElementById("screenLoading").classList.add("hidden"); document.getElementById("screenLobby").classList.remove("hidden");
             }
         })();
 
         window.clearSession = () => { localStorage.clear(); location.reload(); }
 
-        // --- NAVIGATION ---
         window.createRoom = () => {
             myName = document.getElementById("inputName").value.trim().toUpperCase();
-            if(!myName) return alert("Isi nama dulu!");
-            
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-            roomCode = ""; for(let i=0; i<4; i++) roomCode += chars.charAt(Math.floor(Math.random()*chars.length));
-            
-            isHost = true;
-            saveSession(); setupLobby();
-            
-            set(ref(db, `rooms/${roomCode}`), {
-                status: "LOBBY",
-                players: { [myId]: { name: myName, isHost: true } },
-                gameState: { phase: "LOBBY" }
-            });
+            if(!myName) return showToast("Isi nama dulu!", true);
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ"; roomCode = ""; for(let i=0; i<4; i++) roomCode += chars.charAt(Math.floor(Math.random()*chars.length));
+            isHost = true; saveSession(); setupLobby();
+            set(ref(db, `rooms/${roomCode}`), { status: "LOBBY", players: { [myId]: { name: myName, isHost: true } }, gameState: { phase: "LOBBY" } });
             listenRoom();
         };
 
         window.showJoin = () => {
-            if(!document.getElementById("inputName").value.trim()) return alert("Isi nama dulu!");
-            document.getElementById("viewLanding").classList.add("hidden");
-            document.getElementById("viewJoin").classList.remove("hidden");
+            if(!document.getElementById("inputName").value.trim()) return showToast("Isi nama dulu!", true);
+            document.getElementById("viewLanding").classList.add("hidden"); document.getElementById("viewJoin").classList.remove("hidden");
         }
 
         window.joinRoom = () => {
             myName = document.getElementById("inputName").value.trim().toUpperCase();
             roomCode = document.getElementById("inputCode").value.trim().toUpperCase();
-            if(roomCode.length !== 4) return alert("Kode harus 4 huruf!");
-
+            if(roomCode.length !== 4) return showToast("Kode harus 4 huruf!", true);
             get(ref(db, `rooms/${roomCode}`)).then(snap => {
                 if(snap.exists()) { 
                     set(ref(db, `rooms/${roomCode}/players/${myId}`), { name: myName, isHost: false });
                     isHost = false; saveSession(); setupLobby(); listenRoom();
-                } else { alert("Room tidak ditemukan!"); }
+                } else { showToast("Room tidak ditemukan!", true); }
             });
         };
 
         function saveSession() {
-            localStorage.setItem("ww_room", roomCode);
-            localStorage.setItem("ww_name", myName);
-            localStorage.setItem("ww_id", myId);
-            localStorage.setItem("ww_host", isHost);
+            localStorage.setItem("ww_room", roomCode); localStorage.setItem("ww_name", myName); localStorage.setItem("ww_id", myId); localStorage.setItem("ww_host", isHost);
         }
 
         function setupLobby() {
@@ -452,42 +459,63 @@ if (savedHubName && !document.getElementById("inputName").value) {
             if(isHost) document.getElementById("hostPanel").classList.remove("hidden");
         }
 
-        // --- CORE LISTENER ---
         function listenRoom() {
             document.getElementById("screenLoading").classList.add("hidden");
-
+            
             onValue(ref(db, `rooms/${roomCode}/players`), snap => {
                 allPlayers = snap.val() || {};
                 document.getElementById("pCount").innerText = Object.keys(allPlayers).length;
                 
+                const listDiv = document.getElementById("lobbyPlayerList"); listDiv.innerHTML = "";
+                Object.values(allPlayers).forEach(p => {
+                    const div = document.createElement("div"); div.className = "lobby-tag";
+                    div.innerHTML = p.isHost ? `👑 ${p.name}` : p.name;
+                    listDiv.appendChild(div);
+                });
+
                 if (allPlayers[myId]?.isHost) {
-                    isHost = true;
-                    document.getElementById("hostGameControls").classList.remove("hidden");
+                    isHost = true; document.getElementById("hostGameControls").classList.remove("hidden");
                     if (!window.hostInterval) startHostEngine();
                 }
 
                 if (allPlayers[myId]?.privateMsg) {
                     const el = document.getElementById("privateMsg");
                     el.innerHTML = `<span class="material-symbols-rounded small-icon">info</span> ${allPlayers[myId].privateMsg}`;
-                    el.classList.remove("hidden");
-                    setTimeout(() => el.classList.add("hidden"), 8000);
+                    el.classList.remove("hidden"); setTimeout(() => el.classList.add("hidden"), 8000);
                     if(!isHost) update(ref(db, `rooms/${roomCode}/players/${myId}`), { privateMsg: null });
                 }
             });
 
+            // NEW: LISTEN FOR DISCUSSION VOTES
+            onValue(ref(db, `rooms/${roomCode}/discussionVotes`), snap => {
+                const votes = snap.val() || {};
+                const readyList = document.getElementById("discussNames");
+                readyList.innerHTML = "";
+                let count = 0;
+                
+                Object.keys(votes).forEach(uid => {
+                    if (allPlayers[uid]) {
+                        const tag = document.createElement("div");
+                        tag.className = "ready-tag"; tag.innerText = allPlayers[uid].name;
+                        readyList.appendChild(tag);
+                        count++;
+                    }
+                });
+                
+                const livingCount = Object.values(allPlayers).filter(p => p.isAlive).length;
+                document.getElementById("discussCount").innerText = `${count}/${livingCount}`;
+                
+                if (votes[myId]) document.getElementById("discussArea").querySelector("button").classList.add("hidden");
+            });
+
             onValue(ref(db, `rooms/${roomCode}/gameState`), snap => {
-                const state = snap.val();
-                if(!state) return;
-
+                const state = snap.val(); if(!state) return;
                 if (isHost && Math.abs(hostLocalTimer - state.timer) > 3) hostLocalTimer = state.timer;
-
                 if (state.phase === "GAME_OVER") {
                     document.getElementById("overlayWin").classList.remove("hidden");
                     document.getElementById("winTitle").innerText = state.winner;
                     if(isHost) clearInterval(window.hostInterval);
-                } else {
-                    renderGamePhase(state);
-                }
+                } else { renderGamePhase(state); }
             });
         }
 
@@ -503,18 +531,12 @@ if (savedHubName && !document.getElementById("inputName").value) {
 
             if (!myRole || myRole === "VILLAGER") {
                  get(ref(db, `rooms/${roomCode}/players/${myId}/role`)).then(s => {
-                    if(s.exists()) {
-                        myRole = s.val();
-                        updateRoleUI();
-                    }
+                    if(s.exists()) { myRole = s.val(); updateRoleUI(); }
                 });
-            } else {
-                updateRoleUI();
-            }
+            } else { updateRoleUI(); }
 
             if (state.phase === "STARTING" && !roleFetched) {
-                document.getElementById("overlayRole").classList.remove("hidden");
-                roleFetched = true;
+                document.getElementById("overlayRole").classList.remove("hidden"); roleFetched = true;
             }
 
             document.body.style.backgroundColor = PHASE_COLORS[state.phase] || "#2c3e50";
@@ -524,7 +546,10 @@ if (savedHubName && !document.getElementById("inputName").value) {
             const title = document.getElementById("phaseTitle");
             const desc = document.getElementById("phaseDesc");
             const action = document.getElementById("actionArea");
+            const discuss = document.getElementById("discussArea");
+            
             action.classList.add("hidden");
+            discuss.classList.add("hidden");
 
             switch(state.phase) {
                 case "STARTING":
@@ -534,22 +559,27 @@ if (savedHubName && !document.getElementById("inputName").value) {
                     const round = state.round || 1;
                     const content = getNightContent(round);
                     desc.innerHTML = `<b>Pertanyaan #${round}:</b><br>${content.text}`;
-                    action.classList.remove("hidden");
-                    renderGrid();
+                    if(allPlayers[myId]?.isAlive) {
+                        action.classList.remove("hidden"); renderGrid();
+                    }
                     break;
                 case "DAY_ANNOUNCE":
                     title.innerText = "PENGUMUMAN"; desc.innerText = state.announcement || "Desa aman."; break;
                 case "DAY_DISCUSS":
-                    title.innerText = "DISKUSI"; desc.innerText = "Waktu berdebat! Cari siapa pelakunya."; break;
+                    title.innerText = "DISKUSI"; desc.innerText = "Waktu berdebat! Cari siapa pelakunya."; 
+                    if(allPlayers[myId]?.isAlive) discuss.classList.remove("hidden");
+                    break;
                 case "VOTING":
                     title.innerText = "VOTING"; desc.innerText = "Pilih pemain untuk dieksekusi.";
-                    action.classList.remove("hidden"); renderGrid(); break;
+                    if(allPlayers[myId]?.isAlive) {
+                        action.classList.remove("hidden"); renderGrid();
+                    }
+                    break;
             }
         }
 
         function renderGrid() {
-            const grid = document.getElementById("playerGrid");
-            grid.innerHTML = "";
+            const grid = document.getElementById("playerGrid"); grid.innerHTML = "";
             Object.keys(allPlayers).forEach(key => {
                 if(key === myId) return; 
                 const p = allPlayers[key];
@@ -569,25 +599,27 @@ if (savedHubName && !document.getElementById("inputName").value) {
         }
 
         window.submitAction = () => {
-            if(!selectedTarget) return alert("Pilih satu pemain!");
+            if(!selectedTarget) return showToast("Pilih satu pemain!", true);
+            showCardSplash(myRole, "⚡");
             set(ref(db, `rooms/${roomCode}/actions/${myId}`), { target: selectedTarget, role: myRole });
             document.getElementById("actionArea").classList.add("hidden");
             document.getElementById("phaseDesc").innerHTML = "<span style='color:#2ecc71'>✅ Jawaban Terkirim</span><br>Menunggu pemain lain...";
+        }
+
+        window.voteEndDiscuss = () => {
+            set(ref(db, `rooms/${roomCode}/discussionVotes/${myId}`), true);
         }
 
         window.toggleRole = () => document.getElementById("overlayRole").classList.remove("hidden");
         
         function updateRoleUI() {
             document.getElementById("myRoleTitle").innerText = myRole;
-            let desc = "Warga biasa. Cari Wolf.";
-            let color = "#2ecc71"; // Green
-            
+            let desc = "Warga biasa. Cari Wolf."; let color = "#2ecc71"; 
             if(myRole === "WEREWOLF") { desc = "JAHAT. Mangsa warga tiap malam."; color = "#e74c3c"; }
             if(myRole === "SEER") { desc = "DESA. Cek status pemain (Jahat/Baik)."; color = "#3498db"; }
             if(myRole === "DOCTOR") { desc = "DESA. Lindungi 1 orang dari serangan."; color = "#9b59b6"; }
             if(myRole === "BODYGUARD") { desc = "DESA. Lindungi orang. Jika diserang, kamu & penyerang mati."; color = "#e67e22"; }
             if(myRole === "HUNTER") { desc = "DESA. Jika mati malam ini, tembakanmu aktif."; color = "#f39c12"; }
-            
             document.getElementById("myRoleDesc").innerText = desc;
             document.getElementById("myRoleTitle").style.color = color;
         }
@@ -597,21 +629,23 @@ if (savedHubName && !document.getElementById("inputName").value) {
 
         window.startGame = () => {
             get(ref(db, `rooms/${roomCode}/players`)).then(snap => {
-                const ids = Object.keys(snap.val());
-                const count = ids.length;
-                let roles = [];
+                if (!snap.exists()) return showToast("Belum ada pemain!", true);
+                const ids = Object.keys(snap.val()); const count = ids.length;
+                if (count < 4) return showToast("⛔ Minimal 4 Pemain!", true);
+                if (count > 15) return showToast("⛔ Maksimal 15 Pemain!", true);
 
-                if (count >= 8) {
-                    roles.push("WEREWOLF", "SEER", "DOCTOR", "BODYGUARD");
-                } else {
-                    roles.push("WEREWOLF", "SEER");
-                }
+                let roles = [];
+                roles.push("WEREWOLF", "SEER", "DOCTOR");
+                if (count >= 9) roles.push("WEREWOLF");
+                if (count >= 12) roles.push("WEREWOLF");
+                if (count >= 6) roles.push("BODYGUARD");
+                if (count >= 8) roles.push("HUNTER");
 
                 while(roles.length < count) roles.push("VILLAGER");
+                if(roles.length > count) roles = roles.slice(0, count);
                 roles.sort(() => Math.random() - 0.5);
 
                 ids.forEach((id, i) => update(ref(db, `rooms/${roomCode}/players/${id}`), { role: roles[i], isAlive: true, privateMsg: null }));
-                
                 update(ref(db, `rooms/${roomCode}`), { status: "PLAYING" });
                 hostLocalTimer = 5;
                 update(ref(db, `rooms/${roomCode}/gameState`), { phase: "STARTING", timer: 5, round: 1 });
@@ -625,24 +659,39 @@ if (savedHubName && !document.getElementById("inputName").value) {
         }
 
         window.forceNextPhase = () => { hostLocalTimer = 0; processing = false; hostLoop(); }
-        
-        window.endGame = () => {
-            if(!confirm("Yakin akhiri game?")) return;
-            update(ref(db, `rooms/${roomCode}/gameState`), { phase: "GAME_OVER", winner: "DIBATALKAN HOST" });
-        }
-        
-        window.deleteRoom = () => {
-            if(!confirm("Yakin hapus room? Semua pemain akan keluar.")) return;
-            remove(ref(db, `rooms/${roomCode}`));
-            localStorage.clear();
-            location.reload();
-        }
+        window.endGame = () => { showConfirmModal("AKHIRI GAME?", "Permainan akan dihentikan paksa.", () => { update(ref(db, `rooms/${roomCode}/gameState`), { phase: "GAME_OVER", winner: "DIBATALKAN HOST" }); }); }
+        window.deleteRoom = () => { showConfirmModal("HAPUS ROOM?", "Semua data akan hilang permanen.", () => { remove(ref(db, `rooms/${roomCode}`)); localStorage.clear(); location.reload(); }); }
 
         function hostLoop() {
             if (!isHost) return;
             if (hostLocalTimer > 0) {
                 hostLocalTimer--;
                 set(ref(db, `rooms/${roomCode}/gameState/timer`), hostLocalTimer);
+                
+                // --- FAST FORWARD LOGIC ---
+                // Cek kondisi skip setiap detik
+                get(ref(db, `rooms/${roomCode}`)).then(snap => {
+                    const data = snap.val();
+                    const phase = data.gameState.phase;
+                    const players = data.players || {};
+                    const actions = data.actions || {};
+                    const votes = data.discussionVotes || {};
+                    
+                    const livingPlayers = Object.values(players).filter(p => p.isAlive).length;
+
+                    // 1. SKIP NIGHT: Jika semua pemain hidup sudah submit aksi
+                    if (phase === "NIGHT" && hostLocalTimer > 4) {
+                        const actionCount = Object.keys(actions).length;
+                        if (actionCount >= livingPlayers) hostLocalTimer = 4;
+                    }
+
+                    // 2. SKIP DISCUSS: Jika semua pemain hidup klik selesai
+                    if (phase === "DAY_DISCUSS" && hostLocalTimer > 4) {
+                        const readyCount = Object.keys(votes).length;
+                        if (readyCount >= livingPlayers) hostLocalTimer = 4;
+                    }
+                });
+
                 processing = false;
             } else {
                 if (processing) return;
@@ -660,7 +709,7 @@ if (savedHubName && !document.getElementById("inputName").value) {
                             checkWin();
                         }); return;
                     }
-                    else if(s.phase === "DAY_ANNOUNCE") { next="DAY_DISCUSS"; time=180; }
+                    else if(s.phase === "DAY_ANNOUNCE") { next="DAY_DISCUSS"; time=180; remove(ref(db, `rooms/${roomCode}/discussionVotes`)); }
                     else if(s.phase === "DAY_DISCUSS") { next="VOTING"; time=30; remove(ref(db, `rooms/${roomCode}/actions`)); }
                     else if(s.phase === "VOTING") {
                         processVote().then(res => {
@@ -686,14 +735,10 @@ if (savedHubName && !document.getElementById("inputName").value) {
         async function processNight() {
             const snap = await get(ref(db, `rooms/${roomCode}/actions`));
             const acts = snap.val() || {};
-            
-            let wolfVotes = {}, seerT = null, seerId = null;
-            let docTarget = null, bgTarget = null, bgId = null;
-            let hunterT = null, hunterId = null;
+            let wolfVotes = {}, seerT = null, seerId = null, docTarget = null, bgTarget = null, bgId = null, hunterT = null, hunterId = null;
 
             Object.keys(acts).forEach(k => {
-                const r = acts[k].role;
-                const t = acts[k].target;
+                const r = acts[k].role, t = acts[k].target;
                 if(r === "WEREWOLF") wolfVotes[t] = (wolfVotes[t]||0)+1;
                 if(r === "SEER") { seerT = t; seerId = k; }
                 if(r === "DOCTOR") docTarget = t;
@@ -704,39 +749,22 @@ if (savedHubName && !document.getElementById("inputName").value) {
             let wolfTarget = null, max = 0;
             Object.keys(wolfVotes).forEach(k => { if(wolfVotes[k] > max){ max = wolfVotes[k]; wolfTarget = k; }});
 
-            let deadList = [];
-            let story = "Malam tenang.";
-
+            let deadList = [], story = "Malam tenang.";
             if (wolfTarget) {
-                if (wolfTarget === docTarget) {
-                    story = "Seseorang diserang, tapi TABIB menyelamatkannya!";
-                    wolfTarget = null; 
-                } else if (wolfTarget === bgTarget) {
-                    story = "BODYGUARD berkorban! Dia membunuh satu Werewolf, tapi dia juga gugur.";
-                    deadList.push(bgId); 
+                if (wolfTarget === docTarget) { story = "Seseorang diserang, tapi TABIB menyelamatkannya!"; wolfTarget = null; }
+                else if (wolfTarget === bgTarget) { story = "BODYGUARD berkorban! Dia membunuh satu Werewolf, tapi dia juga gugur."; deadList.push(bgId); 
                     let wolfId = Object.keys(allPlayers).find(p => allPlayers[p].role === "WEREWOLF" && allPlayers[p].isAlive);
-                    if(wolfId) deadList.push(wolfId);
-                    wolfTarget = null; 
-                } else {
-                    deadList.push(wolfTarget);
-                    story = `Malam berdarah! ${allPlayers[wolfTarget].name} tewas.`;
-                }
+                    if(wolfId) deadList.push(wolfId); wolfTarget = null; 
+                } else { deadList.push(wolfTarget); story = `Malam berdarah! ${allPlayers[wolfTarget].name} tewas.`; }
             }
 
-            if (hunterId && hunterT && deadList.includes(hunterId)) {
-                deadList.push(hunterT);
-                story += ` TAPI! HUNTER sempat menembak ${allPlayers[hunterT].name} sebelum mati!`;
-            }
-
+            if (hunterId && hunterT && deadList.includes(hunterId)) { deadList.push(hunterT); story += ` TAPI! HUNTER sempat menembak ${allPlayers[hunterT].name} sebelum mati!`; }
             deadList.forEach(id => update(ref(db, `rooms/${roomCode}/players/${id}`), { isAlive: false }));
 
             if(seerT && seerId) {
-                const targetRole = allPlayers[seerT].role;
-                const isEvil = (targetRole === "WEREWOLF" || targetRole === "MINION"); 
-                const info = `Terawangan: ${allPlayers[seerT].name} adalah faksi ${isEvil ? "JAHAT" : "BAIK"}.`;
-                update(ref(db, `rooms/${roomCode}/players/${seerId}`), { privateMsg: info });
+                const isEvil = (allPlayers[seerT].role === "WEREWOLF"); 
+                update(ref(db, `rooms/${roomCode}/players/${seerId}`), { privateMsg: `Terawangan: ${allPlayers[seerT].name} adalah faksi ${isEvil ? "JAHAT" : "BAIK"}.` });
             }
-
             return story;
         }
 
@@ -744,16 +772,12 @@ if (savedHubName && !document.getElementById("inputName").value) {
             const snap = await get(ref(db, `rooms/${roomCode}/actions`));
             const acts = snap.val() || {};
             let votes = {}, victim = null, max = 0;
-            
             Object.values(acts).forEach(v => votes[v.target] = (votes[v.target]||0)+1);
             Object.keys(votes).forEach(k => { if(votes[k] > max){ max = votes[k]; victim = k; }});
 
             if(victim && max >= 2) {
                 update(ref(db, `rooms/${roomCode}/players/${victim}`), { isAlive: false });
-                if (allPlayers[victim].role === "HUNTER") {
-                    return `Warga menggantung ${allPlayers[victim].name}. Dia adalah HUNTER!`;
-                }
-                return `Warga sepakat! ${allPlayers[victim].name} dieksekusi.`;
+                return allPlayers[victim].role === "HUNTER" ? `Warga menggantung ${allPlayers[victim].name}. Dia adalah HUNTER!` : `Warga sepakat! ${allPlayers[victim].name} dieksekusi.`;
             }
             return "Voting seri/kurang. Tidak ada eksekusi.";
         }
